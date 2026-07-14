@@ -72,28 +72,28 @@ def build_student_overview_summary(
     total_modules_completed,
     lecture_completion_percent=None,
 ):
-    # ── Assignment Performance: 0–400 pts ──────────────────────────────────
+    # ── Assignment Performance: 0–500 pts ──────────────────────────────────
     assignment_average = float(getattr(analytics, 'average_assignment_score', 0.0) or 0.0)
     assignment_performance_points = round(
-        min(400.0, max(0.0, (assignment_average / 100.0) * 400.0)), 1
+        min(500.0, max(0.0, (assignment_average / 100.0) * 500.0)), 1
     )
 
-    # ── Lecture Completion: 0–400 pts ───────────────────────────────────────
+    # ── Lecture Completion: 0–350 pts ───────────────────────────────────────
     lecture_percent = float(lecture_completion_percent or 0.0)
-    lecture_completion_points = round(min(400.0, max(0.0, lecture_percent / 100.0 * 400.0)), 1)
+    lecture_completion_points = round(min(350.0, max(0.0, lecture_percent / 100.0 * 350.0)), 1)
 
-    # ── Consistency (Streak): 0–200 pts ────────────────────────────────────
+    # ── Consistency (Streak): 0–150 pts ────────────────────────────────────
     streak = int(getattr(analytics, 'current_learning_streak', 0) or 0)
     if streak >= 30:
-        consistency_points = 200.0
+        consistency_points = 150.0
     elif streak >= 20:
-        consistency_points = 160.0
+        consistency_points = 120.0
     elif streak >= 10:
-        consistency_points = 100.0
+        consistency_points = 75.0
     elif streak >= 5:
-        consistency_points = 50.0
+        consistency_points = 40.0
     else:
-        consistency_points = round(max(0.0, streak * 10.0), 1)
+        consistency_points = round(max(0.0, streak * 8.0), 1)
 
     # ── Overall Score: sum clamped to 1000 ─────────────────────────────────
     overall_score = round(
@@ -133,18 +133,18 @@ def build_student_overview_summary(
         'score_breakdown': {
             'assignment_performance': {
                 'earned': round(assignment_performance_points, 0),
-                'max': 400,
-                'percent': round((assignment_performance_points / 400.0) * 100.0, 1),
+                'max': 500,
+                'percent': round((assignment_performance_points / 500.0) * 100.0, 1),
             },
             'lecture_completion': {
                 'earned': round(lecture_completion_points, 0),
-                'max': 400,
-                'percent': round((lecture_completion_points / 400.0) * 100.0, 1),
+                'max': 350,
+                'percent': round((lecture_completion_points / 350.0) * 100.0, 1),
             },
             'consistency': {
                 'earned': round(consistency_points, 0),
-                'max': 200,
-                'percent': round((consistency_points / 200.0) * 100.0, 1),
+                'max': 150,
+                'percent': round((consistency_points / 150.0) * 100.0, 1),
             },
             'overall': {
                 'earned': round(overall_score, 0),
