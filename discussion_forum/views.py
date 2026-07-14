@@ -26,6 +26,13 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 
+def get_user_name(user):
+    """Return a display name for a user, falling back gracefully."""
+    if not user:
+        return "User"
+    return (user.first_name.strip() if user.first_name else None) or user.username or "User"
+
+
 def installment_Checker(enrolled_user, course):
     """!
     @brief Internal helper to determine which sections a student can access based on payments.
@@ -180,16 +187,16 @@ def weekly_forum(request, id, course_url, section_url):
                 sub_replies_data.append({
                     "id": sr.id,
                     "sub_reply": sr.sub_reply,
-                    "user_name": sr.user.first_name if sr.user else sr.user.username if sr.user else "User",
+                    "user_name": get_user_name(sr.user),
                     "user_email": sr.user.email if sr.user else "",
-                    "created_date": sr.created_date
+                    "created_date": sr.created_date.isoformat() if sr.created_date else ""
                 })
             replies_data.append({
                 "id": r.id,
                 "reply": r.reply,
-                "user_name": r.user.first_name if r.user else r.user.username if r.user else "User",
+                "user_name": get_user_name(r.user),
                 "user_email": r.user.email if r.user else "",
-                "created_date": r.created_date,
+                "created_date": r.created_date.isoformat() if r.created_date else "",
                 "sub_replies": sub_replies_data
             })
         
@@ -197,9 +204,9 @@ def weekly_forum(request, id, course_url, section_url):
             "id": q.id,
             "title": q.title,
             "question": q.question,
-            "user_name": q.user.first_name if q.user else q.user.username if q.user else "User",
+            "user_name": get_user_name(q.user),
             "user_email": q.user.email if q.user else "",
-            "created_date": q.created_date,
+            "created_date": q.created_date.isoformat() if q.created_date else "",
             "reply_count": q.reply_set.filter(approval_flag=True).count(),
             "replies": replies_data,
             "week": f"Week {section.week_number}" if hasattr(section, 'week_number') else section.name
@@ -253,31 +260,18 @@ def create_post(request, id, course_url, section_url):
     is_ajax = True 
 
     if request.method == 'POST':
-        title = None
-        question_text = None
-        section_id = None
-        
-        # First try POST data (form data)
-        if request.POST.get('title') and request.POST.get('question') and request.POST.get('section_id'):
-            title = request.POST.get('title')
-            question_text = request.POST.get('question')
-            section_id = request.POST.get('section_id')
-        # Then try JSON body
-        elif request.headers.get('Content-Type') == 'application/json':
-            import json
-            try:
-                body_data = json.loads(request.body.decode('utf-8'))
-                title = body_data.get('title')
-                question_text = body_data.get('question')
-                section_id = body_data.get('section_id')
-            except Exception as e:
-                print(f"Error parsing JSON body: {e}")
-                pass
-        
+        # Use DRF's request.data — safely handles both JSON and form-data
+        # without the RawPostDataException that occurs when mixing request.POST and request.body
+        data = request.data
+        title = data.get('title')
+        question_text = data.get('question')
+        section_id = data.get('section_id')
+
         if not title or not question_text or not section_id:
+            msg = f"Missing fields: title={bool(title)}, question_text={bool(question_text)}, section_id={bool(section_id)} (section_id value: {section_id})"
             if is_ajax:
-                return JsonResponse({'success': False, 'message': 'Title, question, and section_id are required'}, status=400)
-            return HttpResponseBadRequest('Title, question, and section_id are required')
+                return JsonResponse({'success': False, 'message': msg}, status=400)
+            return HttpResponseBadRequest(msg)
         
         # Log each field for debugging
         print("Title:", title)
@@ -308,6 +302,13 @@ def create_post(request, id, course_url, section_url):
             print(f"Failed to send email notification: {email_error}")
         
         if is_ajax:
+            user = new_question.user
+            user_name = (user.first_name.strip() if user and user.first_name else None) or (user.username if user else "User")
+            try:
+                section_obj = Section.objects.get(pk=section_id)
+                section_name = section_obj.name
+            except Exception:
+                section_name = "Week"
             return JsonResponse({
                 'success': True,
                 'message': 'Your response has been submitted successfully!',
@@ -315,12 +316,12 @@ def create_post(request, id, course_url, section_url):
                     'id': new_question.id,
                     'title': new_question.title,
                     'question': new_question.question,
-                    'user_name': new_question.user.first_name if new_question.user else new_question.user.username if new_question.user else "User",
-                    'user_email': new_question.user.email if new_question.user else "",
-                    'created_date': new_question.created_date.isoformat() if new_question.created_date else "",
+                    'user_name': user_name,
+                    'user_email': user.email if user else '',
+                    'created_date': new_question.created_date.isoformat() if new_question.created_date else '',
                     'reply_count': 0,
                     'replies': [],
-                    'week': f"Week {Section.objects.get(pk=section_id).week_number}" if hasattr(Section.objects.get(pk=section_id), 'week_number') else Section.objects.get(pk=section_id).name
+                    'week': section_name,
                 }
             })
         
@@ -392,16 +393,16 @@ def question_search(request, id, course_url, section_url):
                     sub_replies_data.append({
                         "id": sr.id,
                         "sub_reply": sr.sub_reply,
-                        "user_name": sr.user.first_name if sr.user else sr.user.username if sr.user else "User",
+                        "user_name": get_user_name(sr.user),
                         "user_email": sr.user.email if sr.user else "",
-                        "created_date": sr.created_date
+                        "created_date": sr.created_date.isoformat() if sr.created_date else ""
                     })
                 replies_data.append({
                     "id": r.id,
                     "reply": r.reply,
-                    "user_name": r.user.first_name if r.user else r.user.username if r.user else "User",
+                    "user_name": get_user_name(r.user),
                     "user_email": r.user.email if r.user else "",
-                    "created_date": r.created_date,
+                    "created_date": r.created_date.isoformat() if r.created_date else "",
                     "sub_replies": sub_replies_data
                 })
             
@@ -409,9 +410,9 @@ def question_search(request, id, course_url, section_url):
                 "id": q.id,
                 "title": q.title,
                 "question": q.question,
-                "user_name": q.user.first_name if q.user else q.user.username if q.user else "User",
+                "user_name": get_user_name(q.user),
                 "user_email": q.user.email if q.user else "",
-                "created_date": q.created_date,
+                "created_date": q.created_date.isoformat() if q.created_date else "",
                 "reply_count": q.reply_set.filter(approval_flag=True).count(),
                 "replies": replies_data,
                 "week": f"Week {section.week_number}" if hasattr(section, 'week_number') else section.name
@@ -486,16 +487,16 @@ def individual_question(request, id, course_url, section_url, qid):
                 sub_replies_data.append({
                     "id": sr.id,
                     "sub_reply": sr.sub_reply,
-                    "user_name": sr.user.first_name if sr.user else sr.user.username if sr.user else "User",
+                    "user_name": get_user_name(sr.user),
                     "user_email": sr.user.email if sr.user else "",
-                    "created_date": sr.created_date
+                    "created_date": sr.created_date.isoformat() if sr.created_date else ""
                 })
             replies_data.append({
                 "id": r.id,
                 "reply": r.reply,
-                "user_name": r.user.first_name if r.user else r.user.username if r.user else "User",
+                "user_name": get_user_name(r.user),
                 "user_email": r.user.email if r.user else "",
-                "created_date": r.created_date,
+                "created_date": r.created_date.isoformat() if r.created_date else "",
                 "sub_replies": sub_replies_data
             })
 
@@ -505,9 +506,9 @@ def individual_question(request, id, course_url, section_url, qid):
                 "id": question.id,
                 "title": question.title,
                 "question": question.question,
-                "user_name": question.user.first_name if question.user else question.user.username if question.user else "User",
+                "user_name": get_user_name(question.user),
                 "user_email": question.user.email if question.user else "",
-                "created_date": question.created_date,
+                "created_date": question.created_date.isoformat() if question.created_date else "",
                 "replies": replies_data
             },
             "course": {
@@ -562,23 +563,9 @@ def create_reply(request, id, course_url, section_url, qid):
     is_ajax = 'application/json' in accept_header or 'XMLHttpRequest' in x_requested_with or 'application/json' in http_accept
     
     if request.method == 'POST':
-        reply_text = None
-        
-        # Get content type from headers
-        content_type = request.headers.get('Content-Type', '') or request.META.get('CONTENT_TYPE', '')
-        
-        # First try JSON body (since frontend sends JSON)
-        if 'application/json' in content_type:
-            import json
-            try:
-                body_data = json.loads(request.body.decode('utf-8'))
-                reply_text = body_data.get('reply')
-            except Exception:
-                pass
-        # Then try POST data (form data)
-        elif request.POST.get('reply'):
-            reply_text = request.POST.get('reply')
-        
+        # Use DRF's request.data — avoids RawPostDataException from mixing request.POST and request.body
+        reply_text = request.data.get('reply')
+
         if not reply_text:
             if is_ajax:
                 return JsonResponse({'success': False, 'message': 'Reply content is required'}, status=400)
@@ -613,7 +600,7 @@ def create_reply(request, id, course_url, section_url, qid):
                 'reply': {
                     'id': reply.id,
                     'reply': reply.reply,
-                    'user_name': reply.user.first_name if reply.user else reply.user.username if reply.user else "User",
+                    'user_name': get_user_name(reply.user),
                     'user_email': reply.user.email if reply.user else "",
                     'created_date': reply.created_date.isoformat() if reply.created_date else "",
                     'sub_replies': []
@@ -661,24 +648,9 @@ def create_subreply(request, id, course_url, section_url, qid, rid):
     is_ajax = 'application/json' in accept_header or 'XMLHttpRequest' in x_requested_with or 'application/json' in http_accept
     
     if request.method == 'POST':
-        sub_reply_text = None
-        
-        # Get content type from headers
-        content_type = request.headers.get('Content-Type', '') or request.META.get('CONTENT_TYPE', '')
-        print(f"[create_subreply] Content-Type: {content_type}")
-        
-        # First try JSON body (since frontend sends JSON)
-        if 'application/json' in content_type:
-            import json
-            try:
-                body_data = json.loads(request.body.decode('utf-8'))
-                sub_reply_text = body_data.get('sub_reply')
-            except Exception:
-                pass
-        # Then try POST data (form data)
-        elif request.POST.get('sub_reply'):
-            sub_reply_text = request.POST.get('sub_reply')
-        
+        # Use DRF's request.data — avoids RawPostDataException from mixing request.POST and request.body
+        sub_reply_text = request.data.get('sub_reply')
+
         if not sub_reply_text:
             if is_ajax:
                 return JsonResponse({'success': False, 'message': 'Sub-reply content is required'}, status=400)
@@ -714,7 +686,7 @@ def create_subreply(request, id, course_url, section_url, qid, rid):
                 'subreply': {
                     'id': sub_reply.id,
                     'sub_reply': sub_reply.sub_reply,
-                    'user_name': sub_reply.user.first_name if sub_reply.user else sub_reply.user.username if sub_reply.user else "User",
+                    'user_name': get_user_name(sub_reply.user),
                     'user_email': sub_reply.user.email if sub_reply.user else "",
                     'created_date': sub_reply.created_date.isoformat() if sub_reply.created_date else ""
                 }
