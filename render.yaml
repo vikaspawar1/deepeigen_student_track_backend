@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: deepeigen-backend
+    env: python
+
+    buildCommand: "pip install --upgrade pip setuptools wheel && pip install -r requirements.txt && python manage.py collectstatic --no-input && python manage.py migrate"
+
+    startCommand: "gunicorn deepeigen.wsgi:application"
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: deepeigen-db
+          property: connectionString
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: DJANGO_DEBUG
+        value: "False"
+
+      - key: ALLOWED_HOSTS
+        value: "your-backend-url.onrender.com"
+
+databases:
+  - name: deepeigen-db
+    plan: free

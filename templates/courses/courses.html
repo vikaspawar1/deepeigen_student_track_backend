@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<main id="main">
+    <section id="courses" class="services">
+      <div class="container" data-aos="fade-up">
+
+        <div class="section-title">
+          <h2>Courses</h2>
+        </div>
+
+        <div class="row">
+            {% for course in courses %}
+                <div class="col-lg-4 col-md-6 pb-4 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="100">
+                    <a href="{% url 'course_detail' course.id course.url_link_name%}">
+                    <div class="icon-box p-2">
+                        <img src="{{course.course_image.url}}" class="card-img-top img-fluid" alt="{{course.title}} Image" id="coursePostImage" data-url="{{course.course_image.url}}">
+                        <br><br>
+                        <h4><a href="{% url 'course_detail' course.id course.url_link_name%}">{{course.title}}</a></h4>
+                        <p>{{course.course_description}}</p>
+                        <div class="col-12 row pl-2 pt-3 pr-2">
+                        <div class="col-2 feature-text"><span>FEATURES</span></div>
+                        <div class="col-9 ml-1"><hr class="solid"></div>
+                        </div>
+                        <div class="col-12 pl-3 pt-2 pr-1">
+                            <div class="row">
+                                <div class="col-6 p-2">
+                                    <div class="row">
+                                        <div class="col-9 pr-2 mentor-text"><i class="far fa-clock"></i> Duartion: {{course.duration}}months</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 p-2">
+                                    <div class="row">
+                                        <div class="col-9 pr-2 mentor-text"><i class="fas fa-graduation-cap"></i> Category: {{course.category}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 pl-3 pt-2">
+                            <div class="row">
+                                <div class="col-6 p-2">
+                                    <div class="row">
+                                        {% if course.indian_fee == 0%}
+                                            <div class="col-9 pr-2 mentor-text">Fee: Free</div>
+                                        {% else %}
+                                            <div class="col-9 pr-2 mentor-text">Fee: INR {{course.indian_fee}} </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-6 p-2">
+                                    <div class="row">
+                                        {% if course.id == 8%}
+                                            <div class="col-9 pr-2 mentor-text">Starts From: Feb 2022</div>
+                                        {% else %}
+                                            <div class="col-9 pr-2 mentor-text">Assignments: {{course.assignments}}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="container mt-1">
+                        <div class="col-md-12 text-center">
+                            {% load custom_tags %}
+                            {% enrolled_user course user as enrolled %}
+                            {% if user.is_authenticated and enrolled %}
+                                <a href="{% url 'course_overview' course.id course.url_link_name%}" class="btn btn-primary align-self-end">Go to course</a>
+                            {% else %}
+                                <a href="{% url 'course_detail' course.id course.url_link_name%}" class="btn btn-primary align-self-end">Find out More</a>
+                            {% endif %}
+                        </div>
+                        </div>
+                        <br>
+                    </div>
+                    </a>
+                </div>
+            {% endfor %}
+
+        </div>
+
+      </div>
+    </section>
+  </main>
+  <!-- End #main -->
+
+  <br>
+
+  <div class="container">
+    <ol aria-label="breadcrumbs" class="breadcrumblist" itemscope="" itemtype="http://schema.org/BreadcrumbList" role="menubar">
+      <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+        <a href="{% url 'home'%}" itemprop="item">
+          <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Deep Eigen</font></font></h6>
+        </a>
+        <meta content="1" itemprop="position">
+      </li>
+      <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+        <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Courses</font></font></h6>
+        <meta content="2" itemprop="position">
+      </li>
+    </ol>
+  </div>
+
+  <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org/",
+        "@type": "WebPage",
+        "name": "Deep Eigen",
+        "url": "https://www.deepeigen.com/",
+        "description": "{{description}}"
+      }
+    ]
+  </script>
+
+  <script>
+    document.querySelectorAll('img#coursePostImage').forEach(img => {
+      console.log('Image URL:', img.dataset.url);
+  });  
+  </script>
+{% endblock %}

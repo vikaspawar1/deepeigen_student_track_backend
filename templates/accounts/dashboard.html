@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<main id="main">
+    <div class="padding-y bg">
+    {% include 'includes/alerts.html' %}
+      <div class="container">
+        <div class="row">
+            {% include 'includes/dashboard_sidebar.html' %}
+          <main class="col-md-9 p-2">
+            <article class="card">
+            <header class="card-header">
+              <strong class="d-inline-block mr-3">Logged in as:</strong>
+              <span>{{user.first_name}} {{user.last_name}}</span>
+            </header>
+            <div class="card-body">
+              <div class="row">
+        
+              <div class="col-md-6">
+                <div class="card" style="text-align:center;">
+                  <div class="card-body" style="height:146px">
+                    <h5 class="card-title">My courses</h5>
+                    <h4>{{courses_count}}</h4>
+                    <a style="color:#3167eb;" href="{% url 'mycourses'%}">Enrolled Courses</a>
+                    <br>
+                    <br>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card" style="text-align:center;">
+                  <div class="card-body">
+                    <img src="{% static 'img/user.png'%}" alt="User Profile Picture" width="50" height="50" style="border-radius:50%;">
+                    <p class="mb-0">{{user.email}}</p>
+                    <p>{{user.phone_number}}</p>
+                  </div>
+                </div>
+              </div>
+        
+              </div> <!-- row.// -->
+            </div> <!-- card-body .// -->
+        
+            </article> <!-- order-group.// -->
+          </main>
+        </div> <!-- row.// -->
+      </div>
+    </div>
+
+    {% comment %} popup message for reminder payment {% endcomment %}
+    <style>
+      .popup_overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+      }
+
+      .popup_reminder {
+        position: fixed;
+        flex-direction: column;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        color: #333;
+        width: 90%;
+        max-width: 650px;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        display: none;
+        padding: 20px;
+        max-height: 60%;
+        overflow-y: scroll;
+      }
+      .popup_reminder::-webkit-scrollbar {
+        width: 1px; 
+      }
+
+      .popup_reminder::-webkit-scrollbar-thumb {
+        background: #898a89; 
+        border-radius: 1px;
+      }
+
+      .popup_reminder::-webkit-scrollbar-thumb:hover {
+        background: #555; 
+      }
+
+      .popup_reminder {
+        scrollbar-width: thin; 
+        scrollbar-color: #898a89 transparent; 
+      }
+
+      .popup_close {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .popup_close button {
+        background: none;
+        border: none;
+        font-size: 1.4em;
+        color: #888;
+        cursor: pointer;
+        transition: color 0.3s;
+      }
+
+      .popup_close button:hover {
+        color: #333;
+      }
+
+      .popup_heading {
+        color: #28a745;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 2.1em;
+        font-weight: bold;
+      }
+
+      .course_list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .course_list li {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .course_details {
+        font-weight: bold;
+        color: #555;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .pay_btn {
+        display: inline-block;
+        margin: 10px auto 0;
+        padding: 10px 20px;
+        font-size: 1em;
+        color: #fff;
+        background: #28a745;
+        border: none;
+        border-radius: 6px;
+        text-decoration: none;
+        text-align: center;
+        transition: background 0.3s ease-in-out;
+        cursor: pointer;
+      }
+
+      .pay_btn:hover {
+        background: #218838 !important;
+      }
+
+      .popup_footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 0.9em;
+        color: #666;
+      }
+    </style>
+
+    <!-- popup form -->
+    {% if course_data %}
+    <div class="popup_overlay" id="popupOverlay"></div>
+    <div id="popupReminder" class="popup_reminder">
+        <div class="popup_close">
+          <button onclick="closePopup()">X</button>
+        </div>
+        <h2 class="popup_heading">Payment Reminder</h2>
+        <ul class="course_list">
+            {% for course in course_data %}
+            <li>
+              <strong>Course Name:</strong> {{ course.course_name }}<br>
+              <strong>Price:</strong> {{ course.course_price }}<br>
+              <strong>Installment:</strong> {{ course.installment }}<br>
+
+              <a href="{% url 'place_order' course.course_id   course.course_link %}" class="btn btn-primary pay_btn"  >Make payment </a>
+
+
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="popup_footer">
+          <p>Your payment is due. Please complete it soon.</p>
+        </div>
+    </div>
+    {% endif %}
+
+
+
+<script>
+   function showPopup() {
+    document.getElementById('popupReminder').style.display = 'flex';
+    document.getElementById('popupOverlay').style.display = 'block';
+  }
+
+  function closePopup() {
+    document.getElementById('popupReminder').style.display = 'none';
+    document.getElementById('popupOverlay').style.display = 'none';
+  }
+
+  // Example: Show the popup after 2 seconds
+  setTimeout(showPopup, 2000);
+</script>
+
+
+</main>
+    <br>
+    <br>
+    <div class="container">
+      <ol aria-label="breadcrumbs" class="breadcrumblist" itemscope="" itemtype="http://schema.org/BreadcrumbList" role="menubar">
+        <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+          <a href="{% url 'home'%}" itemprop="item">
+            <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Deep Eigen</font></font></h6>
+          </a>
+          <meta content="1" itemprop="position">
+        </li>
+        <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+          <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Dashboard</font></font></h6>
+          <meta content="2" itemprop="position">
+        </li>
+      </ol>
+    </div>
+{% endblock %}

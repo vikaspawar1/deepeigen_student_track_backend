@@ -1,0 +1,17 @@
+<div class="col-md-3" data-aos="fade-right">
+    <!-- Tabs nav -->
+    <div class="nav flex-column nav-pills nav-pills-custom">
+
+        <a class="nav-link mb-3 p-3 shadow" href="{% url 'discussion_forum' course.id course.url_link_name %}">
+            <i class="fas fa-arrow-left"></i>
+            <span class="font-weight-bold small text-uppercase">Discussion Forum</span>
+        </a>
+
+        {% for section in sections %}
+            <a class="nav-link mb-3 p-3 shadow {% if section.url_name == url_last_parameter %}active{% endif %}" href="{% url 'weekly_forum' course.id course.url_link_name section.url_name %}">
+                <span class="font-weight-bold small text-uppercase">{{section.name}}</span>
+            </a>
+        {% endfor %}
+    </div>
+
+</div>

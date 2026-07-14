@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+      <!-- ======= Hero Section ======= -->
+  <section id="course_hero" class="d-flex align-items-center justify-content-center">
+    <div class="container" data-aos="fade-up">
+
+      <div class="row justify-content-center" data-aos="fade-up" data-aos-delay="150">
+        <div class="about-content col-lg-12">
+          <h2 class="text-white mt-10">
+            {{course.title}}
+          </h2>
+          <br>
+          <div class="text-center">
+            <p class="text-white link-nav" > <b>Level: </b>{{course.level}}</p>
+            <p class="text-white link-nav"> <b>Content Depth: </b>Category-{{course.category}}</p>
+          </div>
+          <br>
+          <div class="text-center">
+            {% if enrolled_user_flg %}
+              <a href="{% url 'course_overview' course.id course.url_link_name%}" class="primary-btn btn-lg text-uppercase">Go to Course</a>
+            {% else %}
+              <a href="{% url 'course_enrollment' course.id course.url_link_name%}" class="primary-btn btn-lg text-uppercase">Enroll now</a>
+            {%endif%}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- End Hero -->
+
+  
+  <main id="main">
+    <div class="container pt-4">
+      <div class='text-center mt-4 mb-2'>
+        <h2 style="color:#00004d;"><b>Course Details</b></h2>
+      </div>
+      <br>
+      <br>
+      <div class="row">
+        <div class="col-lg-8 left-contents" data-aos="fade-right">
+          <div class="p-5 bg-white rounded shadow mb-5">
+            <!-- Rounded tabs -->
+            <ul id="myTab" role="tablist" class="nav nav-tabs nav-pills flex-column flex-sm-row text-center bg-light border-0 rounded-nav">
+              <li class="nav-item flex-sm-fill">
+                <a id="overview-tab" data-toggle="tab" href="#overview" role="tab" aria-controls="overview" aria-selected="true" class="nav-link border-0 text-uppercase font-weight-bold active">Overview</a>
+              </li>
+              {% if course.id == 2 or course.id == 6 or course.id == 8 or course.id == 12 %}
+              <li class="nav-item flex-sm-fill">
+                <a id="curriculum-tab" data-toggle="tab" href="#curriculum" role="tab" aria-controls="curriculum" aria-selected="false" class="nav-link border-0 text-uppercase font-weight-bold">Curriculum</a>
+              </li>
+              {% endif %}
+              <!-- <li class="nav-item flex-sm-fill">
+                <a id="instructors-tab" data-toggle="tab" href="#instructors" role="tab" aria-controls="instructors" aria-selected="false" class="nav-link border-0 text-uppercase font-weight-bold">Instructors</a>
+              </li> -->
+              <li class="nav-item flex-sm-fill">
+                <a id="access-tab" data-toggle="tab" href="#access" role="tab" aria-controls="access" aria-selected="true" class="nav-link border-0 text-uppercase font-weight-bold">Accessibility</a>
+              </li>
+              <li class="nav-item flex-sm-fill">
+                <a id="refund-tab" data-toggle="tab" href="#refund" role="tab" aria-controls="refund" aria-selected="false" class="nav-link border-0 text-uppercase font-weight-bold">Refund</a>
+              </li>
+              {% if course.assignment_description %}
+                <li class="nav-item flex-sm-fill">
+                  <a id="assignment-tab" data-toggle="tab" href="#assignment" role="tab" aria-controls="assignment" aria-selected="false" class="nav-link border-0 text-uppercase font-weight-bold">Assignment</a>
+                </li>
+              {% endif %}
+            </ul>
+            <div id="myTabContent" class="tab-content">
+              <div id="overview" role="tabpanel" aria-labelledby="overview-tab" class="tab-pane fade px-4 py-5 show active">
+                {{course.entire_overview | safe}}
+              </div>
+              {% if course.id == 2 or course.id == 6 or course.id == 8 or course.id == 12 %}
+                <div id="curriculum" role="tabpanel" aria-labelledby="curriculum-tab" class="tab-pane fade px-4 py-5">
+                  <div class="container pb-5" data-aos="fade-up">
+                    <div class="accordion accordion-flush" id="accordionFlushExample">
+                      {% for outline in course.outline_set.all %}
+                          <div class="accordion-item">
+                            <h2 class="accordion-header" id="flush-heading{{outline.id}}">
+                              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse{{outline.id}}" aria-expanded="false" aria-controls="flush-collapse{{outline.id}}">
+                                {{outline.title}}
+                              </button>
+                            </h2>
+                            <div id="flush-collapse{{outline.id}}" class="accordion-collapse collapse" aria-labelledby="flush-heading{{outline.id}}" data-bs-parent="#accordionFlushExample">
+                              <div class="accordion-body">
+                                {{outline.sub_topics | safe}}
+                              </div>
+                            </div>
+                          </div>
+                      {% endfor %}
+              
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+              <!-- <div id="instructors" role="tabpanel" aria-labelledby="instructors-tab" class="tab-pane fade px-4 py-5">
+                {% for instructor in instructors %}
+                    <div class="row mb-4">
+                    <div class="col-lg-4">
+                        <img class="img-fluid border rounded-circle" src="{{instructor.profile_picture.url}}">
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="row m-2">
+                        <a href="{{instructor.socialaccount_link}}" target="_blank">
+                            <h4 class="or" style="color:orange">{{instructor.first_name}} {{instructor.last_name}}</h4>
+                        </a>
+                        </div>
+                        <div class="row m-2">
+                        <h5> Founder and CEO, <a class="blue_color" href="http://www.swaayatt-robots.com/"> Swaayatt Robots</a></h5>
+                        </div>
+                        <div class="row m-2">
+                        <ul>
+                            <li class="mb-2" style="font-size: 18px;font-weight: 500; font-family: 'Times New Roman',Times,serif;">Over 10 years of experience in Autonomous driving, motion planning, decision making and perception.
+                            </li>
+        
+                            <li class="mb-2" style="font-size: 18px;font-weight: 500; font-family: 'Times New Roman',Times,serif;">Currently working on bringing autonomous driving technology to unstructured environments like in India.
+                            </li>
+        
+                        </ul>
+        
+                        </div>
+                    </div>
+                    </div>
+                {% endfor %}
+                
+                <div class="row justify-content-around mt-3 ">
+                </div>
+              </div> -->
+              <div id="access" role="tabpanel" aria-labelledby="access-tab" class="tab-pane fade px-4 py-5">
+                <h4 style="color:red">Access:</h4>
+                <div>
+                  {{course.access_description | safe}}
+                </div>
+              </div>
+              <div id="refund" role="tabpanel" aria-labelledby="refund-tab" class="tab-pane fade px-4 py-5">
+                {% if course.id != 2 %}
+                  <p>
+                    Refunds can be done only within 7 days of registration. In case any part of the course becomes online, 
+                    for that part refund&nbsp;cannot be issued. We recommend checking the free lectures to get an idea of the depth and type of lectures in the course before one registers for the course.
+                    <br>
+                    <br>
+                    If a refund is requested by a registrant, we will subtract the payment-gateway fee from your payment. 
+                    An additional 1% of the amount will be deducted for convenience, processing, and server charges. 
+                    The GST amount will also be subtracted. Any part of the course that is online, fee corresponding to that part will also be deducted. 
+                    The remaining amount will be refunded to you.
+                  </p>
+                  <div class="accordion accordion-flush" id="accordionFlushExample">
+                    <div class="accordion-item">
+                      <h2 class="accordion-header" id="flush-heading-refund">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse-refund" aria-expanded="false" aria-controls="flush-collapse-refund">
+                          Refund Policy
+                        </button>
+                      </h2>
+                      <div id="flush-collapse-refund" class="accordion-collapse collapse" aria-labelledby="flush-heading-refund" data-bs-parent="#accordionFlushExample">
+                        <div class="accordion-body">
+                          {{course.refund_description | safe}}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                {% else %}
+                  <p>
+                    No refund for this course, as the lectures are available immediately upon registration.
+                  </p>
+                {% endif %}
+              </div>
+              <div id="assignment" role="tabpanel" aria-labelledby="assignment-tab" class="tab-pane fade px-4 py-5">
+                <h4 style="color:red">Assignment:</h4>
+                <div>
+                  {{course.assignment_description | safe}}
+                  <br>
+                </div>
+              </div>
+            <!-- End rounded tabs -->
+          </div>
+        </div>
+        </div>
+        <div class="col-lg-4 right-contents" data-aos="fade-left">
+          <ul>
+            <li class="justify-content-between d-flex">
+              <p><b style="color: black">Instructor's Name</b></p>
+              {% for instructor in instructors %}
+                <a href="{{ instructor.socialaccount_link }}" target="_blank">
+                  {{instructor.first_name}} {{instructor.last_name}}
+                {% endfor %}
+              </a>
+            </li>
+            {% if course.free_videos_link %}
+              <li class="justify-content-between d-flex">
+                <p><b style="color: black">Free videos</b></p>
+                <a href="{{ course.free_videos_link }}" target="_blank">
+                  Click Here
+                </a>
+              </li>
+            {% endif %}
+            <li class="justify-content-between d-flex">
+              <p><b style="color: black">Course Type</b></p>
+              <b style="color: black">{{course.course_type}}</b>
+            </li>
+
+            {% comment %} Foreign fee {% endcomment %}
+            <li>
+              <div class="justify-content-between d-flex" href="#">
+                {% if course.id == 2%}
+                  <p><b style="color: black">Fee: Foreign</b></p>
+                  <b style="color: black">$ {{course.foreign_fee}}</b>
+                {% else %}
+                  <p><b style="color: black">Fee: Foreign</b></p>
+                  <b style="color: black">$ {{course.foreign_fee}}</b>
+                {% endif %}
+              </div>
+            </li>
+
+            {% comment %} Indian fee {% endcomment %}
+            <li>
+              <div class="justify-content-between d-flex" href="#">
+                {% if course.id == 2%}
+                  <p><b style="color: black">Fee: India</b></p>
+                  <b style="color: black">INR {{course.indian_fee}}</b>
+                {% else %}
+                  <p><b style="color: black">Fee: India</b></p>
+                  &nbsp; &nbsp; &nbsp;
+                  <b style="color: black">INR {{course.indian_fee}}</b>
+                {% endif %}
+              </div>
+            </li>
+
+            {% if course.first_offered %}
+              <li>
+                <div class="justify-content-between d-flex" href="#">
+                  <p><b style="color: black">First Offered:</b></p>
+                  <b style="color: black">{{course.first_offered}}</b>
+                </div>
+              </li>
+            {% endif %}
+            {% if course.current_status %}
+              <li>
+                <div class="justify-content-between d-flex" href="#">
+                  <p><b style="color: black">Current Status:</b></p>
+                  <b style="color: black;text-align: right;">{{course.current_status}}</b>
+                </div>
+              </li>
+            {% endif %}
+            <li>
+              <div class="justify-content-between d-flex" href="#">
+                <p><b style="color: black">Expected Course Engagement</b></p>
+                <b style="color: black;text-align: right;">{{course.user_engagement_per_week}} Hrs/Week</b>
+              </div>
+            </li>
+          </ul>
+          <div class="text-center pb-4">
+            {% if enrolled_user_flg %}
+              <a href="{% url 'course_overview' course.id course.url_link_name%}" class="enroll-btn btn-lg text-uppercase text-center">Go to Course</a>
+            {% else %}
+            <a href="{% url 'course_enrollment' course.id course.url_link_name%}" class="enroll-btn btn-lg text-uppercase text-center">Enroll the Course</a>
+            
+            {% endif %}
+          </div>
+          <!-- <a href= "/freelecture_machinelearning" class="btn btn-info btn-block mt-3">See Free Lectures</a> -->
+        </div>
+      </div>
+    </div>
+    
+  </main>
+  <!-- End #main -->
+
+    <br>
+    <div class="container">
+      <ol aria-label="breadcrumbs" class="breadcrumblist" itemscope="" itemtype="http://schema.org/BreadcrumbList" role="menubar">
+        <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+          <a href="{% url 'home'%}" itemprop="item">
+            <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Deep Eigen</font></font></h6>
+          </a>
+          <meta content="1" itemprop="position">
+        </li>
+        <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+          <a href="{% url 'courses'%}" itemprop="item">
+            <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Courses</font></font></h6>
+          </a>
+          <meta content="2" itemprop="position">
+        </li>
+        <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+          <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">{{course.title}}</font></font></h6>
+          <meta content="3" itemprop="position">
+        </li>
+      </ol>
+    </div>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Course",
+        "name": "{{course.title}}",
+        "description": "{{course.meta_description}}",
+        "provider": {
+          "@type": "Organization",
+          "name": "Deep Eigen",
+          "sameAs": "http://www.deepeigen.com/"
+        }
+      }
+   </script>
+{% endblock %}

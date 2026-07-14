@@ -1,0 +1,26 @@
+{% autoescape off %}
+<!DOCTYPE html>
+<html lang="en">
+    <body>
+        <br>
+        <div align="center">
+            <a href="https://{{domain}}{% url 'home' %}" style="text-decoration: none; font-size: 40px; color: #c02537; font-family: 'Arvo', serif;"><b>&nbsp;Deep Eigen</b></a>
+        </div>
+        <br>
+        <h2 style="color: orange;">Hi {{order.first_name}},</h2>
+        <p style="font-size: 16px;">You Have Successfully Enrolled for the {{course.title}}.
+            <br>
+            <p>Order Number: {{order.order_number}}</p>
+            <p>Amount Paid: {{payment.amount_paid}}</p>
+            <p>Course Duration: {{course.duration}} months</p>
+            <a href="https://{{domain}}{% url 'mycourses' %}">View Enrolled Course</a>
+            <p>Happy Learning!</p>
+        </p>
+        <br>
+        <p>
+            If you think it's not you, please ignore this email.</p>
+        <br>
+        <p style="color: grey;">Regards,<br>DeepEigen Team</p>
+    </body>
+</html>
+{% endautoescape %}

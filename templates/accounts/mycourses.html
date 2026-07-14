@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+    <main id="main">
+        <div id="courses" class="services">
+            <div class="container aos-init aos-animate" data-aos="fade-up">
+      
+                <div class="section-title">
+                    <br>
+                    <h2>My Courses</h2>
+                    <br>
+                </div>
+      
+                <div class="row">
+                    {% include 'includes/dashboard_sidebar.html' %}
+                    
+                    {% for course in courses %}
+                        {% if forloop.counter > 1 and not forloop.counter|divisibleby:2 %}
+                            <div class="col-lg-3"></div>
+                        {% endif %}
+                        
+                        <div class="col-lg-4 col-md-6 pb-4 d-flex align-items-stretch" data-aos="zoom-in" data-aos-delay="100">
+                            <a href="{% url 'course_overview' course.id course.url_link_name%}">
+                                <div class="icon-box p-2">
+                                    <img src="{{course.course_image.url}}" class="card-img-top img-fluid" alt="{{course.title}} Image" id="coursePostImage">
+                                    <br><br>
+                                    <h4><a href="{% url 'course_overview' course.id course.url_link_name%}">{{course.title}}</a></h4>
+                                    <p>{{course.course_description}}</p>
+                                    <div class="col-12 row pl-2 pt-3 pr-2">
+                                    <div class="col-2 feature-text"><span>FEATURES</span></div>
+                                    <div class="col-9 ml-1"><hr class="solid"></div>
+                                    </div>
+                                    <div class="col-12 pl-3 pt-2 pr-1">
+                                        <div class="row">
+                                            <div class="col-6 p-2">
+                                                <div class="row">
+                                                    {% load custom_tags %}
+                                                    {% remaining_days course.id user.id as days %}
+                                                    <div class="col-9 pr-2 mentor-text"><i class="far fa-clock"></i> Time Left: {{days}} days</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-6 p-2">
+                                                <div class="row">
+                                                    <div class="col-9 pr-2 mentor-text"> Assignments: {{course.assignments}}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-12 p-2">
+                                            <div class="details__bottom">
+                                                {% load l10n %}
+                                                {% user_overall_progress course user as overall_progress %}
+                                                <span class="details__progress">
+                                                    <span class="progress__bar" style="width: {{overall_progress}}%;"></span>
+                                                </span>
+                                                <span class="a11 text-midnight-lighter progress__text tooltip-container">
+                                                    <!-- After finishing the values are 100.04(for ml) and 99.17(for other courses) -->
+                                                    <div class="ellipsis mt-2"><b>{{overall_progress}}% Complete</b></div>
+                                                    [Based on Assignment Submission]
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br>
+                                    <div class="container mt-2">
+                                        <div class="col-md-12 text-center">
+                                            <a href="{% url 'course_overview' course.id course.url_link_name%}" class="btn btn-primary align-self-end">Go to Course</a>
+                                        </div>
+                                    </div>
+                                    <br>
+                                </div>
+                            </a>
+                        </div>
+                    {% empty %}
+                        <br>
+                        <div class="col-lg-9 text-center mt-3">
+                            <h4>Currently you have not registered for any courses</h4>
+                            <br><br>
+
+                            <div class="text-center pb-4">
+                
+                                <a href="{% url 'courses'%}" class="enroll-btn btn-lg text-uppercase text-center">Explore Courses</a>
+                                
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+              </div>
+      
+            </div>
+        </div>
+
+
+    </main>
+    <br>
+    <br>
+
+    <div class="container">
+        <ol aria-label="breadcrumbs" class="breadcrumblist" itemscope="" itemtype="http://schema.org/BreadcrumbList" role="menubar">
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <a href="{% url 'home'%}" itemprop="item">
+              <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Deep Eigen</font></font></h6>
+            </a>
+            <meta content="1" itemprop="position">
+          </li>
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">My courses</font></font></h6>
+            <meta content="2" itemprop="position">
+          </li>
+        </ol>
+    </div>
+{% endblock %}

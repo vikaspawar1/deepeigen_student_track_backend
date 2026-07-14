@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <main id="main">
+
+        <div class="container text-center" style="margin-top: 50px;">
+            <i class="fas fa-check-circle" style="font-size: 72px;margin-bottom: 20px;color: #28A745;"></i>
+            {% if order.total_amount == 0%}
+                <h2 class="text-center"> You have Succesfully Enrolled</h2>
+            {% else %}
+                <h2 class="text-center">Payment Successful</h2>
+            {% endif %}
+        <br>
+        <div class="text-center pb-4">
+            <a href="{% url 'dashboard' %}" class="enroll-btn btn-lg text-uppercase text-center">Go to Dashboard</a>
+            <br>
+            <br>
+        </div>
+        </div>
+
+
+        <div class="row">
+
+        <div class="col-md-2"></div>
+
+        <div class="col-md-8 aos-init aos-animate" data-aos="fade-up">
+            <div class="tab-content pb-5">
+                <!-- col-lg-12 start here -->
+                <div class="tab-pane fade shadow rounded bg-white show active p-5">
+
+                    <div class="row">
+                        <!-- Start .row -->
+                        <div class="col-md-3">
+                        <h1 class="logo me-auto me-lg-0"><a href="{% url 'home' %}"><span class="company_name">Deep Eigen</span></a></h1>
+                        </div>
+                        <div class="col-md-6"></div>
+                        <!-- col-lg-6 end here -->
+                        <div class="col-md-3 text-right">
+                            <!-- col-lg-6 start here -->
+                            <div class="invoice-from">
+                                <ul class="list-unstyled text-right">
+                                    <li><strong>Invoiced To</strong></li>
+                                    <li>{{order.full_name}}</li>
+                                    <li>{{order.address}}</li>
+                                    <li>{{order.city}}, {{order.state}}</li>
+                                    <li>{{order.country}}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <!-- col-lg-6 end here -->
+                        <div class="col-md-6">
+                            <!-- col-lg-12 start here -->
+                            <div class="invoice-details">
+                                <ul class="list-unstyled mb0">
+                                    <li><strong>Order: </strong> #{{order.order_number}}</li>
+                                    <li><strong>Transaction ID: </strong> {{payment.payment_id}}</li>
+                                    <li><strong>Order Date:</strong> {{order.created_at}}</li>
+                                    <li><strong>Status:</strong> {{payment.status}}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+
+                    <div class="col-md-3"></div>
+
+                    <div class="col-md-6">
+                        <div class="invoice-items text-center">
+                        <div class="table-responsive" tabindex="0">
+                            <table class="table table-bordered">
+                                <tfoot>
+                                    <tr>
+                                        <th class="per70 text-center">Course Enrolled</th>
+                                        <th class="per25 text-center">Amount Paid</th>
+                                    </tr>
+                                    <tr>
+                                        <td>{{course.title}}
+                                        </td>
+                                        <td class="text-center">INR {{order.course_amount}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="1" class="text-right">Tax:</td>
+                                        <td class="text-center">INR {{order.tax}}</td>
+                                    </tr>
+    
+                                    <tr>
+                                        <td colspan="1" class="text-right">Grand Total:</td>
+                                        <td class="text-center">INR {{order.total_amount}}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
+                    
+
+                    <div class="col-md-3"></div>
+                    </div>
+                            <!-- col-lg-12 end here -->
+                </div>
+                        <!-- End .row -->
+            </div>
+        </div>
+
+        <div class="col-md-2"></div>
+        </div>
+        <form id="myForm" action="{% url 'enroll_Invoice'  payment.payment_id  course.id 'None' %}" style="display:none;">
+            <!-- <label for="inputField">Enter Something:</label> -->
+            <!-- <input type="text" id="inputField" name="inputField"> -->
+            <button type="submit">Submit</button>
+        </form>
+        <script>
+            // Wait for the document to be fully loaded
+            document.addEventListener("DOMContentLoaded", function () {
+                // Get a reference to the form
+                var form = document.getElementById("myForm");
+    
+                // Automatically submit the form
+                form.submit();
+            });
+        </script>
+    </main>
+{% endblock %}

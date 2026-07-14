@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /adminsecurelogin/
+Disallow: /accounts/
+
+Sitemap: https://www.deepeigen.com/sitemap.xml

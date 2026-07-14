@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<!-- ============================ COMPONENT LOGIN   ================================= -->
+
+{% if request.GET.command == 'verification' %}
+
+    <div class="container mx-auto alert alert-info text-center" role="alert" style="max-width: 1024px; margin-top:100px;">
+        Thank you for registering with us. We have sent a verification e-mail to [{{ request.GET.email }}]. Please wait for a few minutes.
+        <br><br>
+        Already verified? <a class="link-danger" href="{% url 'login_mannual' %}">Login</a>
+    </div>
+{% else %}
+
+    <main id="main">
+
+        <div class="gradient-custom" data-aos="fade-up">
+            <div class="container py-3 h-150">
+                <div class="row justify-content-center align-items-center h-100">
+                <div class="col-12 col-lg-9 col-xl-7">
+                    <div class="card shadow-2-strong card-registration" style="border-radius: 15px;">
+                    <div class="card-body p-4 p-md-5">
+                        <h3 style="color:#00004d" class="mb-4 pb-2 pb-md-0 mb-md-5 text-center"> Manual User Enrollment Section </h3>
+                        {% include 'includes/alerts.html' %}
+                        <form action="{% url 'login_mannual' %}" method="POST">
+                            {% csrf_token %}
+            
+                            <div class="row">
+                                <div class="col-md-12 mb-4">
+                
+                                <div class="form-outline">
+                                    <input type="email" id="email" class="form-control form-control-lg" name="email" required/>
+                                    <label class="form-label" for="firstName">Email*</label>
+                                </div>
+                
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 mb-4">
+                
+                                <div class="form-outline">
+                                    <input type="password" id="password" class="form-control form-control-lg" name="password" required/>
+                                    <label class="form-label" for="firstName">Password*</label>
+                                </div>
+                
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-1 text-center">
+                                <input class="btn btn-primary btn-block blue-button btn-lg btn-rounded" type="submit" value="Sign in!" />
+                            </div>
+            
+                        </form>
+                    </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+{% endif %}
+<br>
+<br>
+
+<div class="container">
+    <ol aria-label="breadcrumbs" class="breadcrumblist" itemscope="" itemtype="http://schema.org/BreadcrumbList" role="menubar">
+      <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+        <a href="{% url 'home'%}" itemprop="item">
+          <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Deep Eigen</font></font></h6>
+        </a>
+        <meta content="1" itemprop="position">
+      </li>
+      <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+        <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Login</font></font></h6>
+        <meta content="2" itemprop="position">
+      </li>
+    </ol>
+  </div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<main id="main">
+    <div class="container">
+    <div class='text-center mt-4 mb-2'>
+        <h2 style="font-family: 'Arvo',serif;color:red;"><b>Payment Failed</b></h2>
+    </div>
+    <br>
+    <br>
+    <div class="row">
+      <div class="col-lg-2"></div>
+      <div class="col-lg-8" data-aos="fade-right">
+          <div class="p-5 bg-white rounded shadow mb-5">
+          <!-- form entry -->
+          <h4 class="text-center mt-1 mb-4"><b>Transaction Failed for Order ID: #{{order_id}}</b></h4>
+          <p class="text-center">
+            Something went wrong and your payment could not be proceeded.
+          </p>
+          <p class="text-center">
+            To pay successfully try initiating the payment again by enrolling the course.
+          </p>
+          </div>
+      </div>
+      <div class="col-lg-2"></div>
+    </div>
+    
+    </div>
+    
+  </main>
+{% endblock %}

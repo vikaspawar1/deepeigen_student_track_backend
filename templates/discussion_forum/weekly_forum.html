@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <main id="main">
+        <div class="container">
+        <div class='text-center mt-4 mb-2'>
+            <h2 style="color:#00004d;"><b>{{course.title}}</b></h2>
+        </div>
+        <br>
+        <br>
+        <div class="row">
+          {% include 'includes/alerts.html' %}
+            {% if enrolled_user %}
+                {% include 'discussion_forum/section_sidebar.html' with sections=sections %}
+
+
+                <div class="col-md-9">
+                    <!-- Tabs content -->
+                    <div class="tab-content pb-5">
+                        <div class="tab-pane fade shadow rounded bg-white show active p-5">
+                          <div class="row">
+                            <div class="col-lg-2 col-md-3 col-sm-12 mt-1">
+                              <h4 class="font-italic mb-4 dark-blue"><i class="fas fa-graduation-cap"></i>Week 1</h4>
+                            </div>
+                            
+                            <div class="col-lg-6 col-md-6 col-sm-12 mb-4">
+                              <form action="{% url 'question_search' course.id course.url_link_name section.url_name %}" class="search" method="GET">
+                                <div class="input-group w-100">
+                                    <input type="text" class="form-control" style="width:60%;" placeholder="Search" name="keyword">
+                                    
+                                    <div class="input-group-append">
+                                      <button class="btn btn-primary" type="submit">
+                                        <i class="fa fa-search"></i>
+                                      </button>
+                                    </div>
+                                </div>
+                              </form>
+                            </div> <!-- col.// -->
+                            <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                              <a href="#jobdetails1" data-toggle="modal" data-target="#jobdetails1" class="btn btn-outline-primary"><span>create post</span></a>
+                            </div>
+                            
+                            
+                          </div>
+            
+                          <div class="modal fade" id="jobdetails1" tabindex="-1" role="dialog" aria-labelledby="jobdetails1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                              <div class="modal-content">
+                                <form action="{% url 'create_post' course.id course.url_link_name section.url_name %}" method="POST" class="right-shift">
+                                    {% csrf_token %}
+                                    <div class="modal-body">
+                                        <br>
+                                        <h4 class="mb-2 right-shift"><b>Create a new post</b></h4>
+                                        <br>
+                                        <div class="row">
+                                            <div class="col-md-1 mb-4">
+                                                <div class="mb-2"></div>
+                                                <label class="form-label" for="title">Title*</label>
+                                            </div>
+                                            <div class="col-md-10 mb-4">
+                                                <div class="form-outline">
+                                                    <input type="title" id="title" class="form-control form-control-lg" name="title" maxlength="255" required>
+                                                </div>
+                            
+                                            </div>
+                                            <div class="col-md-1 mb-4"></div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-1 mb-4">
+                                                <div class="mb-2"></div>
+                                                <label class="form-label" for="question">Body*</label>
+                                            </div>
+                                            <div class="col-md-10 mb-4">
+                            
+                                                <div class="form-outline">
+                                                    <textarea class="form-control" rows="8" name="question" required></textarea>
+                                                </div>
+                            
+                                            </div>
+                                            <div class="col-md-1 mb-4"></div>
+                                        </div>
+                                        <input type="hidden" name="section_id" value="{{section.id}}" />
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-outline-info" type="submit">Post</button>
+                                        <button type="button" class="btn btn-outline-danger" data-dismiss="modal">Close</button>
+                                    </div>
+                                </form>
+                              </div>
+                            </div>
+                        </div>
+            
+                          
+                          <hr class="orange_row">
+            
+                          <div class="row text-center mt-4">
+                            <div class="col-lg-2 col-sm-4 mb-4">
+                              <div class="btn-group">
+                                <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                  Forums
+                                </button>
+                                <div class="dropdown-menu">
+                                    {% for section in sections %}
+                                        <a class="dropdown-item" href="{% url 'weekly_forum' course.id course.url_link_name section.url_name %}">{{section.name}}</a>
+                                    {% endfor %}
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-lg-5 col-sm-0"></div>
+                            <div class="col-lg-2 col-sm-4 mb-4">
+                              <div class="btn-group sort-button-shift">
+                                <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                  Sort
+                                </button>
+                                <div class="dropdown-menu">
+                                  <a class="dropdown-item" href="{{request.path}}?sort=top">Top</a>
+                                  <a class="dropdown-item" href="{{request.path}}?sort=recent">Recent</a>
+                                </div>
+                              </div>
+                            </div>
+            
+                            <div class="col-lg-1 col-sm-4 mb-4">
+                              <div class="btn-group">
+                                <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                  Filter
+                                </button>
+                                <div class="dropdown-menu">
+                                  <a class="dropdown-item" href="{{request.path}}?filter=all">All</a>
+                                  <a class="dropdown-item" href="{{request.path}}?filter=byyou">Questions asked by you</a>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-lg-1"></div>
+                          </div>
+                          <br>
+                          {% for question in questions%}
+                            <div class="row mt-2">
+                              
+                              <a href="{% url 'individual_question' course.id course.url_link_name section.url_name question.id %}">
+                                <h4 class="font-italic mb-4 dark-black underline">Q{{forloop.counter}}.{{question.title}} </h4>
+                              </a>
+                            </div>
+                            <div class="row">
+                              <h5 class="font-italic mb-4 dark-black overflow big-right-shift ">
+                                {{question.question|linebreaks}}
+                              </h5>
+                            </div>
+                            <hr>
+                          {% empty %}
+                            <br>
+                            <div class="col-lg-12 text-center mt-3">
+                                <h4>Currently there has been no question asked in this section</h4>
+                                <br><br>
+                            </div>
+                        {% endfor %}
+                        <div class="row">
+                          <nav class="mt-4" aria-label="Page navigation sample">
+                            {% if questions.has_other_pages %}
+                              <ul class="pagination">
+                                {% if questions.has_previous %}
+                                  <li class="page-item"><a class="page-link" href="?page={{questions.previous_page_number}}">Previous</a></li>
+                                {% else %}
+                                  <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                {% endif %}
+
+                                {% if questions.number|add:'-4' > 1 %}
+                                  <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+                                  <li class="page-item"><a class="page-link" href="?page={{ questions.number|add:'-5' }}">&hellip;</a></li>
+                                {% endif %}
+              
+                                {% for i in questions.paginator.page_range %}
+                                  {% if questions.number == i %}
+                                    <li class="page-item active"><a class="page-link" href="#">{{i}}</a></li>
+                                  {% elif i > questions.number|add:'-5' and i < questions.number|add:'5' %}
+                                    <li class="page-item"><a class="page-link" href="?page={{i}}">{{i}}</a></li>
+                                  {% endif %}
+                                {% endfor %}
+
+                                {% if questions.paginator.num_pages > questions.number|add:'4' %}
+                                  <li class="page-item"><a class="page-link" href="?page={{ questions.number|add:'5' }}">&hellip;</a></li>
+                                  <li class="page-item"><a class="page-link" href="?page={{questions.paginator.num_pages}}">{{questions.paginator.num_pages}}</a></li>
+                                {% endif %}
+              
+                                {% if questions.has_next %}
+                                  <li class="page-item"><a class="page-link" href="?page={{questions.next_page_number}}">Next</a></li>
+                                {% else %}
+                                    <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+                                {% endif %}
+                              </ul>
+                            {% endif %}
+                          </nav>
+                        </div>
+            
+                        </div>
+                      </div>
+
+                </div>
+            <!-- Tabs content -->
+            {% else %}
+                <div class="col-lg-2"></div>
+                <div class="col-lg-8">
+                    <div class="tab-content pb-5">
+                        <div class="tab-pane fade shadow rounded bg-white show active p-5">
+                        <h4 class="font-italic mb-4 dark-blue">Validity Ended</h4>
+                        <p class="font-italic text-muted mb-2">Your Course duration has been ended, please contact us via email[contact@deepeigen.com] if you want additional time to cover the course.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2"></div>
+            {% endif %}
+            
+
+        </div>
+        </div>
+    
+    </main>
+
+    <br>
+    <div class="container">
+        <ol aria-label="breadcrumbs" class="breadcrumblist" itemscope="" itemtype="http://schema.org/BreadcrumbList" role="menubar">
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <a href="{% url 'home'%}" itemprop="item">
+              <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Deep Eigen</font></font></h6>
+            </a>
+            <meta content="1" itemprop="position">
+          </li>
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <a href="{% url 'courses'%}" itemprop="item">
+              <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Courses</font></font></h6>
+            </a>
+            <meta content="2" itemprop="position">
+          </li>
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <a href="{% url 'course_detail' course.id course.url_link_name%}" itemprop="item">
+              <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">{{course.title}}</font></font></h6>
+            </a>
+            <meta content="3" itemprop="position">
+          </li>
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <a href="{% url 'discussion_forum' course.id course.url_link_name %}" itemprop="item">
+                <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Discussion Forum</font></font></h6>
+            </a>
+            <meta content="4" itemprop="position">
+          </li>
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">{{section.name}}</font></font></h6>
+            <meta content="5" itemprop="position">
+          </li>
+        </ol>
+    </div>
+    <br>
+{% endblock %}

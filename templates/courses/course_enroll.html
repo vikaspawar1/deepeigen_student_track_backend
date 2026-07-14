@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<style>
+    .paying_options{
+        width: 200px;
+    padding: 5px 0px;
+    border-radius: 10px;
+    background-color: white;
+    text-align: center;
+    }
+    .pay_option{
+
+        color:black;
+        font-size: 1.1rem;
+    }
+ 
+</style>
+    <main id="main">
+        <div class="container">
+            <div class='text-center mt-4 mb-2'>
+                <h2 style="color:#00004d;"><b>Course Enrollment Details</b></h2>
+            </div>
+            <br>
+            <br>
+            <div class="row">
+                {% if enrolled_user_flg%}
+                    <div class="col-lg-2"></div>
+                    <div class="col-lg-8" data-aos="fade-right">
+                        <div class="p-5 bg-white rounded shadow mb-5">
+                            <div class="alert alert-danger" role="alert">
+                                Seems like You have Already Enrolled, please check the Dashboard once!
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2"></div>
+                {% else %}
+                    {% if razorpay_flag %}
+                        <form action="{% url 'place_order' course.id course.url_link_name%}" method="POST">
+                    {% else %}
+                        <form action="{% url 'cart_summary' course.id course.url_link_name%}" method="POST">
+                    {% endif %}
+                            <input type="hidden" name="course_amount" value="{{fee}}">
+                            <input type="hidden" name="tax" value="{{tax}}">
+                            <input type="hidden" name="total_amount" value="{{total}}">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-lg-8" data-aos="fade-right">
+                                    <div class="p-5 bg-white rounded shadow mb-5">
+                                <!-- form entry -->
+                                    <h4 class="text-center mt-1 mb-4" style="color:#00004d;"><b>Please Fill the details</b></h4>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                        
+                                        <div class="form-outline">
+                                            <input name="first_name" type="text" id="firstName" class="form-control form-control-lg" value="{{user.first_name}}" name="first_name"  disabled/>
+                                            <label class="form-label" for="firstName">First Name*</label>
+                                        </div>
+                        
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                        
+                                        <div class="form-outline">
+                                            <input name="last_name" type="text" id="lastName" class="form-control form-control-lg" value="{{user.last_name}}" name="last_name"  disabled/>
+                                            <label class="form-label" for="lastName">Last Name*</label>
+                                        </div>
+                        
+                                        </div>
+                                    </div>
+                        
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <div class="form-outline">
+                                                <input name="email" type="email" id="email" class="form-control form-control-lg" value="{{user.email}}" name="email" disabled />
+                                                <label class="form-label" for="Email">Email*</label>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 mb-4">
+                                            <div class="form-outline">
+                                                <input type="text" id="phoneNumber" class="form-control form-control-lg" value="{{user.phone_number}}" name="phone"  disabled />
+                                                <label class="form-label" for="phoneNumber">Phone Number*</label>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 mb-4">
+
+                                        <div class="form-outline">
+                                            <input type="text" id="Address" class="form-control form-control-lg" name="address" maxlength = "200" required/>
+                                            <label class="form-label" for="Address">Address*</label>
+                                        </div>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+
+                                        <div class="form-outline">
+                                            <input type="text" id="city" class="form-control form-control-lg" name="city" maxlength = "50" required/>
+                                            <label class="form-label" for="city">City*</label>
+                                        </div>
+
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+
+                                        <div class="form-outline">
+                                            <input type="text" id="state" class="form-control form-control-lg" name="state" maxlength = "50" required/>
+                                            <label class="form-label" for="state">State*</label>
+                                        </div>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4 pb-2">
+
+                                        <div class="form-outline">
+                                            <input type="text" id="Country" class="form-control form-control-lg" value="{{user.country}}" name="country" maxlength = "50" disabled/>
+                                            <label class="form-label" for="country">Country*</label>
+                                        </div>
+
+                                        </div>
+                                        <div class="col-md-6 mb-4 pb-2">
+
+                                        <div class="form-outline">
+                                            <input type="text" id="zipcode" class="form-control form-control-lg" name="zipcode" maxlength = "50" required/>
+                                            <label class="form-label" for="zipcode">Zip code*</label>
+                                        </div>
+
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4" data-aos="fade-left">
+                                    <aside class="col-lg-12">
+                                    <div class="p-5 bg-white rounded shadow mb-5">
+                                        <h4 class="text-center mt-1 mb-4" style="color:#00004d;"><b>Course Details</b></h4>
+                                        <table class="table table-borderless table-shopping-cart">
+                                        <thead class="text-muted">
+                                        <tr class="small text-uppercase">
+                                            <th scope="col">Course</th>
+                                            <th scope="col" width="80">Price</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <figure class="itemside align-items-center">
+                                                        <div class="aside"><img src="{{course.course_image.url}}" alt="{{course.title}} Image" height="120" width="180" class="img-sm"></div>
+                                                    </figure>
+                                                </td>
+                                                <td>
+                                                {% if fee == 0%}
+                                                    Free
+                                                {% elif user.country == 'india' or user.country == 'India' or user.country == 'INDIA' %}
+                                                    INR {{course.indian_fee}}
+                                                {% else %}
+                                                    $ {{course.foreign_fee}}
+                                                {% endif %}
+                                                </td>
+                                
+                                            </tr>
+                                        </tbody>
+                                        </table>
+                                        <div class="enroll-title text-center">
+                                            <a href="{% url 'course_detail' course.id course.url_link_name%}">{{course.title}}</a>
+                                        </div>
+
+                                        <div style="margin:1rem auto 1.5rem auto;" class="text-center">
+                                            {% if fee == 0 %}
+
+                                            <div></div>
+
+
+                                            {% else %}
+                                            <label for="paying_op">Payment Options:</label>
+                                            <select id="paying_op" name="installment_options" class="paying_options" >
+                                                
+                                             
+                                                <option value="pay_once" selected >One-Time Payment</option>
+                                                <option value="pay_twice">Two-Part Payment</option>
+                                                <option value="pay_thrice">Three-Part Payment</option>
+
+                                                
+                                
+                                              </select>
+                                              {% endif %}
+                                            
+                                        </div>
+                                        <div class="text-center">
+                                            {% if fee == 0%}
+                                                <button type="submit" name="submit" class="pay-btn btn-lg text-uppercase text-center" style="border:none;"><span>Enroll for Free</span></button>
+                                            {% else %}
+                                                {% if course.id == 8 %}
+                                                <h6 class="text-center mt-1 mb-4" style="color:#FF0000;"> * If registering with student discount please mail a proof of being an Undergraduate or Masters student in India at contact@deepeigen.com </h6>
+                                                {% endif %}
+                                                <button type="submit" name="submit" class="pay-btn btn-lg text-uppercase text-center" style="border:none;"><span>Make Payment</span></button>
+                                            {% endif %}
+                                        </div>
+
+
+                                        
+                                        
+                                    </div> <!-- card.// -->
+                                </aside>
+                                </div>
+                            </div>
+                        </form>
+                {% endif %}
+            </div>
+        </div>
+        
+    </main>
+{% endblock %}

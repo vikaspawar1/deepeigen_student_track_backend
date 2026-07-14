@@ -1,0 +1,16 @@
+{% extends "admin/change_list.html" %}
+
+{% block search %}
+    <div style="display: flex; align-items: flex-start;">
+        {{ block.super }}
+        {% if request.user.is_superadmin %}
+           
+            <!-- <a class="button" href="{% url 'admin:course_enrolleduser_custom_freeview' %}" style="margin-left: 10px;border-radius: 3px !important;background-color:rgb(2, 179, 243) !important ;border: 1px #0bf !important;height: auto !important;color: #fff !important;padding: 11px 20px !important;">Add Free user</a> -->
+        {% endif %} 
+    </div>
+{% endblock %}
+
+{% block object-tools %}
+    {{ block.super }}
+    <!-- Keeping existing buttons or tools in the object-tools block -->
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<main id="main">
+    <div class="container">
+      <div class='text-center mt-4 mb-2'>
+        <h2 style="color:#00004d;"><b>Review Your Course and Make Payment</b></h2>
+      </div>
+      <br>
+      <br>
+      <div class="row">
+        <div class="col-lg-2">
+        </div>
+        <div class="col-lg-8" data-aos="fade-up">
+          <div class="p-5 bg-white rounded shadow mb-5">
+
+            <div class="col-lg-12">
+              <div class="payment_details">
+                <h3>Name:</h3>
+                <span>{{order.full_name}}</span>
+                
+              </div>
+
+              <div class="payment_details">
+                <h3>Registered Email:</h3>
+                <span>{{order.email}}</span>
+              </div>
+
+              <div class="payment_details">
+                <h3>Course Registering for:</h3>
+                <span>{{course.title}}</span>
+                
+              </div>
+
+              <div class="payment_details">
+                <h3>Order ID:</h3>
+                <span>#{{order.order_number}}</span>
+                
+              </div>
+            </div>
+            
+            <!-- form entry -->
+              <h4 class="text-center mt-1 mb-4" style="color:#00004d;"><b>Cart Summary</b></h4>
+              {% if order.total_amount > 0 %}
+                <form action="{{ posted.action }}" method="post">
+                  <table class="table table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                          <th scope="col">Course Name</th>
+                          <th scope="col">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>{{course.title}}</td>
+                          <td>INR {{order.course_amount}}</td>
+                        </tr>
+                        {% if tax > 0%}
+                          <tr>
+                            <td>Tax - GST 18%</td>
+                            <td>INR {{order.tax}}</td>
+                          </tr>
+                        {% endif %}
+                        <tr>
+                          <th scope="col">Total</th>    
+                          <td if="tot" id="total">INR {{order.total_amount}}</td>
+                        </tr>
+                    </tbody>
+                  </table>
+        
+                  <div class="row">
+                    <div class="col-lg-7">
+                    <br>
+                    <span style="color: #da2828;">Transaction ID: </span>{{order.order_number}}
+                    </div>
+        
+                    <div class="col-lg-5">
+                      <button type="submit" class="btn btn-warning btn-lg mt-2" ,="" id="pay-btn">Pay via Payment Gateway</button>
+                    </div>
+                    
+                  </div>
+                  <input type="hidden" name="key" value="{{posted.key}}" />
+                  <input type="hidden" name="hash_string" value="{{ posted.hash_string }}" />
+                  <input type="hidden" name="hash" value="{{ posted.hashh }}" />
+                  <input type="hidden" name="posted" value="{{ posted }}" />
+                  <input type="hidden" name="txnid" value="{{ posted.txnid }}" />
+                  <input type="hidden" name="amount" value="{{ posted.amount|default:'' }}" /></td>
+                  <input type="hidden" name="firstname" id="firstname" value="{{ posted.firstname|default:'' }}" /></td>
+                  <input type="hidden" name="email" id="email" value="{{ posted.email|default:'' }}" /></td>
+                  <input type="hidden" name="phone" value="{{ posted.phone|default:'' }}" /></td>
+                  <textarea type="hidden" name="productinfo" style="display:none;">{{ posted.productinfo|default:'' }}</textarea>
+                  </td>
+                  <input type="hidden" name="surl" value="{{ posted.surl }}" size="64" /></td>
+                  <input type="hidden" name="furl" value="{{ posted.furl }}" size="64" /></td>
+                  <input type="hidden" name="service_provider" value="{{posted.service_provider}}" size="64" />
+                  <input type="hidden" name="lastname" id="lastname" value="{{ posted.lastname }}" /></td>
+                  <input type="hidden" name="address" value="{{ posted.address }}" /></td>
+                  <input type="hidden" name="city" value="{{ posted.city }}" /></td>
+                  <input type="hidden" name="state" value="{{ posted.state }}" /></td>
+                  <input type="hidden" name="country" value="{{ posted.country }}" /></td>
+                  <input type="hidden" name="zipcode" value="{{ posted.zipcode }}" /></td>
+                  <input type="hidden" name="udf1" value="{{ posted.udf1 }}" /></td>
+                  <input type="hidden" name="udf2" value="{{ posted.udf2 }}" /></td>
+                  <input type="hidden" name="udf3" value="{{ posted.udf3 }}" /></td>
+                  <input type="hidden" name="udf4" value="{{ posted.udf4 }}" /></td>
+                  <input type="hidden" name="udf5" value="{{ posted.udf5 }}" /></td>
+                </form>
+
+              {% else %}
+                <form action="{% url 'payment_done' course.id course.url_link_name order.order_number %}" method="POST">
+                  <table class="table table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                          <th scope="col">Course Name</th>
+                          <th scope="col">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>{{course.title}}</td>
+                          <td>Free</td>
+                        </tr>
+                        <tr>
+                          <td>Tax - GST 18%</td>
+                          <td>Free</td>
+                        </tr>
+                        <tr>
+                          <th scope="col">Total</th>	
+                          <td if="tot" id="total">Free</td>
+                        </tr>
+                    </tbody>
+                  </table>
+
+                  <div class="row">
+                    <div class="col-lg-9">
+                    <br>
+                    <span style="color: #da2828;">Transaction ID: </span>order_{{order.order_number}}
+                    </div>
+
+                    <div class="col-lg-3">
+                      <button type="submit" class="btn btn-warning btn-lg mt-2 mr-1" ,="" id="pay-btn">Enroll for Free</button>
+                    </div>
+                    
+                  </div>
+                </form>
+
+              {% endif %}
+              <p id="popup"><br>If you wish to pay via Bank-Transfer, please email us your <b>Order ID</b> at "contact@deepeigen.com" along with address details and contact number.<br><br>If registering with student discount for a course, please email a proof of being an Undergraduate Student or Masters Student in India.</p>
+            <!-- form close -->
+          </div>
+        </div>
+        <div class="col-lg-2">
+        </div>
+      </div>
+    </div>
+    
+  </main>
+{% endblock %}

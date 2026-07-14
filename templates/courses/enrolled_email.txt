@@ -1,0 +1,11 @@
+{% autoescape off %}
+
+Hi {{order.first_name}},
+
+You Have Successfully Enrolled for the {{course.title}}
+
+Order Number: {{order.order_number}}
+
+Amount Paid: {{payment.amount_paid}}
+
+{% endautoescape %}

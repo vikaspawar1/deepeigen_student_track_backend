@@ -1,0 +1,810 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manual User Registration</title>
+</head>
+
+<style>
+  
+    {% comment %} *************** enrolled user css ************** {% endcomment %}
+
+    body.dimmed * {
+        opacity: 0.2;
+        pointer-events: none;
+    }
+    
+    body.dimmed #overlay-popup,
+    body.dimmed #overlay-popup * {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .enroll-user {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    
+    .enroll {
+        background: #242933;
+        padding: 50px;
+        border-radius: 8px;
+        max-width: 100%;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        position: relative;
+        color: white;
+    }
+    
+    .enroll-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    
+    .close-button {
+        background: none;
+        border: none;
+        font-size: 25px;
+        cursor: pointer;
+        color: #fff;
+    }
+    .form-box{
+        display: flex;
+        gap: 50px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #adb5bd;
+        font-size: 14px;
+    }
+    
+    .form-group input {
+        width: 20vw;
+        padding: 10px;
+        box-sizing: border-box;
+        border: 1px solid #343a40;
+        background: #495057;
+        color: #fff;
+        border-radius: 4px;
+        outline: none;
+        font-size: 14px;
+    }
+    
+    .form-group input:read-only {
+        background: #495057;
+    }
+    
+    .form-group select {
+        width: 20vw;
+        font-size: 14px;
+        padding: 10px;
+        background: #495057;
+        color: #fff;
+        border-radius: 4px;
+    }
+    .pyt-genrate-btn{
+        border: none;
+        outline: none;
+        background: rgb(128, 77, 0);
+        padding: 11px 25px;
+        /* width: 100px; */
+        margin-top: 10px;
+        border-radius: 4px;
+        font-weight: 600;
+        cursor: pointer;
+        color: rgb(143, 143, 143);
+    }
+    .pyt-genrate-btn:hover{
+        color: white;
+    }
+
+    {% comment %} ************ Overlay Popup ************* {% endcomment %}
+
+    #overlay-popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        {% comment %} gap: 30px; {% endcomment %}
+        padding: 30px;
+        z-index: 1000;
+        background: #000; 
+        color: #fff; 
+        {% comment %} width: 50%;  {% endcomment %}
+        border-radius: 8px;
+        display: none;
+    }
+
+    .popup-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .form-row{
+        display:flex;
+        gap: 20px;
+    }
+    .hide-button{
+        cursor:pointer;
+        color: white;
+    }
+
+    .mannual-action-button{
+        padding: 8px 13px;
+        border: none;
+        outline: none;
+        background: green;
+        color: white;
+        border-radius: 30px;
+    }
+
+    #loader {
+        position: fixed; /* Keeps it centered even when scrolling */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.2); /* Light black transparent background */
+        backdrop-filter: blur(5px); /* Adds a subtle blur effect */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999; /* Ensures it's above everything */
+        display: none; /* Initially hidden */
+    }
+    
+    .loader-content {
+        text-align: center;
+        background: rgba(255, 255, 255, 0.7); /* Light transparent white */
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        font-weight: 500;
+    }    
+    
+
+    .loader {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top: 2px solid transparent;
+        animation: spin 0.8s linear infinite;
+        margin-right: 5px;
+        vertical-align: middle;
+    }
+    
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    
+</style>
+
+<body>
+    {% include 'includes/alerts.html' %}
+
+    <div class="enroll-user">
+        <div class="enroll">
+            <div class="enroll-header">
+                <h2>Enroll User</h2>
+                <button class="mannual-action-button" id="register-button" onclick="showPopup()">
+                    Register New User
+                </button>
+            </div>
+
+            <form action="{% url 'place_order_mannualy' %}" method="POST">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <div class="form-box">
+                    <div class="form-left">
+
+                        <input type="hidden" name="tax" value="0.0">
+    
+                        <div class="form-group">
+                            <label for="user">User email:</label>
+
+                            <!-- Input field linked to datalist -->
+                            <input type="email" list="user" id="users" name="user" placeholder="Type to search..." required>
+                            <!-- Datalist with predefined options -->
+                            <datalist id="user">
+                                 {% for user in users %}
+                                    <option value="{{ user.email }}">{{ user.email }}</option>
+                                 {% endfor %}
+                            </datalist>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="order">Order:</label>
+
+                            <!-- Input field linked to datalist -->
+                            <input type="text" list="order" id="order_number" name="order_number" placeholder="Type to search..." required>
+                            <!-- Datalist with predefined options -->
+                            <datalist id="order">
+                              
+                            </datalist>
+                            
+                            <!-- Button to generate new order -->
+                            <button type="button" class="mannual-action-button" id="generateOrderButton">Generate New Order</button>
+                        </div>
+                        
+
+
+                        <div class="form-group">
+
+                            <label for="course">Course:</label>
+                            <select id="course" name="courseId"  required>
+                                <option value="">Select a course...</option>
+                            </select>
+
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="installment_options">Installment Options:</label>
+                            <select id="installment_options" name="installment_options" required>
+                               
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="course_amount">Course Paid Amount:</label>
+                            <input type="floatformat" id="course_amount" name="course_amount" required>
+                        </div>
+                    
+                        <div class="form-group">
+                            <label for="payment_id">Payment ID:</label>
+
+                            <!-- Input field linked to datalist -->
+                            <input type="text" list="payment" id="payment_id" name="payment_id" placeholder="Type to search..." required>
+                            <datalist id="payment">
+                                {% for payment in payments %}
+                                  <option value="{{ payment.payment_id }}">{{ payment.payment_id }}</option>
+                                {% endfor %}
+                            </datalist>
+
+                            <!-- Button to generate a random payment ID -->
+                            <button type="button" class="mannual-action-button" id="generate_payment_id_button" onclick="handleGeneratePaymentId()">Generate Payment ID</button>
+                        </div>
+    
+                    </div>
+    
+                    <div class="form-right">
+
+
+                        <div class="form-group">
+                            <label for="address">Address:</label>
+                            <input type="text" id="address" name="address" required>
+                        </div>
+    
+                        <div class="form-group">
+                            <label for="state">State:</label>
+                            <input type="text" id="state" name="state" required>
+                        </div>
+    
+                        <div class="form-group">
+                            <label for="city">City:</label>
+                            <input type="text" id="city" name="city" required>
+                        </div>
+    
+                        <div class="form-group">
+                            <label for="zipcode">Zip Code:</label>
+                            <input type="text" id="zipcode" name="zipcode" required>
+                        </div>
+
+                    </div>
+                </div>
+                 <button class="mannual-action-button" type="submit">Enroll User</button>
+
+                <!-- Loader -->
+                <div id="loader">
+                    <div class="loader-content">
+                        <img src="https://i.gifer.com/ZKZg.gif" alt="Loading..." width="80">
+                        <p>Processing... Please wait</p>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div id="overlay-popup">
+
+        <div class="popup-header">
+
+            <h2> Register User</h2>
+            <h1 class="hide-button" onclick="hidePopup()"> X </h1>
+
+        </div>
+
+        <form action="{% url 'register_mannual' %}" method="POST">
+          {% csrf_token %}
+            <div class="register-form-box">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first_name">First Name</label>
+                        <input type="text" id="first_name" name="first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name:</label>
+                        <input type="text" id="last_name" name="last_name" required>
+                    </div>
+                </div>
+                <div class="form-row">
+
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="profession">Profession</label>
+                        <input type="text" id="profession" name="profession" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number:</label>
+                        <input type="number" id="phone" name="phone_number" required>
+                    </div>
+                </div>
+                <div class="form-row">
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input 
+                        type="password" 
+                        id="password" 
+                        name="password"
+                        minlength="8" 
+                        pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}" 
+                        title="Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, and one number." 
+                        required
+                        >
+                        <button type="button" onclick="togglePassword('password', 'togglePasswordIcon1')">
+                        <span id="togglePasswordIcon1">👁️</span>
+
+                    </button>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_password">Repeat Password</label>
+                        <input 
+                        type="password" 
+                        id="confirm_password" 
+                        name="confirm_password"
+                        minlength="8"        
+                        title="Passwords must match."
+                        required
+                        >
+
+                        <button type="button" onclick="togglePassword('confirm_password', 'togglePasswordIcon2')">
+                        <span id="togglePasswordIcon2">👁️</span>
+
+                    </button>
+                    </div>
+
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="country">Current Residence:</label>
+                        <select id="country" name="country" required>
+                            <option value="">Select a Country of Residence</option>
+                            <option value="india">India</option>
+                            <option value="other_country">Other Country</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="mannual-action-button"> submit <button/>
+
+            </div>
+        </form>
+        
+    </div>
+
+{% comment %} Loader {% endcomment %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("form");
+        const submitButton = form.querySelector("button[type='submit']");
+        const loader = document.getElementById("loader");
+    
+        form.addEventListener("submit", function () {
+            // Show loader
+            loader.style.display = "flex";
+    
+            // Disable submit button to prevent multiple clicks
+            submitButton.disabled = true;
+            submitButton.textContent = "Processing...";
+            submitButton.style.backgroundColor = "#ccc";
+            submitButton.style.cursor = "not-allowed";
+        });
+    });
+</script>
+    
+        
+
+{% comment %} script for hide and show password {% endcomment %}
+<script>
+    function togglePassword(inputId, iconId) {
+        const passwordField = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (passwordField.type === "password") {
+            passwordField.type = "text";
+            icon.textContent = "🙈";  // Change icon to indicate hiding
+        } else {
+            passwordField.type = "password";
+            icon.textContent = "👁️";  // Change icon to indicate showing
+        }
+    }
+</script>
+
+
+    <script>
+        document.getElementById("course").addEventListener("change", function () {
+            const selectedEmail = document.getElementById("users").value.trim();
+            const selectedCourse = this.value;
+            const installmentSelect = document.getElementById("installment_options");
+    
+            // Reset installment options
+            installmentSelect.innerHTML = `
+                <option value="">Select...</option>
+                <option value="1">Pay Once</option>
+                <option value="2">Pay Twice</option>
+                <option value="3">Pay Thrice</option>
+            `;
+    
+            // Find the user's enrollment for the selected course
+            const enrollment = enrolledUsers.find(enrolled => 
+                enrolled.email === selectedEmail && enrolled.courseId === selectedCourse
+            );
+    
+            if (enrollment) {
+                // User is already enrolled, update installment options
+                const noOfInstallments = parseInt(enrollment.no_of_installments);
+    
+                // Remove installment options based on previous selection
+                if (noOfInstallments === 1) {
+                    installmentSelect.innerHTML = '<option value="1">Pay Once</option>';
+                } else if (noOfInstallments === 2) {
+                    installmentSelect.innerHTML = '<option value="2">Pay Twice</option>';
+                } else if (noOfInstallments === 3) {
+                    installmentSelect.innerHTML = '<option value="3">Pay Thrice</option>';
+                }
+            }
+        });
+    </script>
+    
+    
+    <script>
+        // Backend data: Users with their country
+        const users = [
+            {% for user in users %}
+                { email: "{{ user.email }}", country: "{{ user.country }}" },
+            {% endfor %}
+        ];
+    
+        // Backend data: Courses with their fees
+        const courses = [
+            {% for course in courses %}
+                { id: "{{ course.id }}", title: "{{ course.title }}", indianFee: {{ course.indian_fee }}, foreignFee: {{ course.foreign_fee }} },
+            {% endfor %}
+        ];
+    
+        console.log("users_:", users)
+        console.log("cpir", courses)
+        // Get elements
+        const userInput = document.getElementById("users");
+        const courseSelect = document.getElementById("course");
+        const installmentSelect = document.getElementById("installment_options");
+        const courseAmountInput = document.getElementById("course_amount");
+    
+        function updateCourseAmount() {
+            const selectedEmail = userInput.value.trim();
+            const selectedCourseId = courseSelect.value;
+            const selectedInstallment = installmentSelect.value;
+    
+            if (!selectedEmail || !selectedCourseId || !selectedInstallment) {
+                courseAmountInput.value = ""; // Reset if any value is missing
+                return;
+            }
+    
+            // Find the user and determine the correct price
+            const user = users.find(user => user.email === selectedEmail);
+            console.log("find :", user)
+            if (!user) return;
+    
+            // Find the selected course
+            const course = courses.find(course => course.id === selectedCourseId);
+            if (!course) return;
+    
+            // Determine price based on user's country
+            let totalPrice = user.country.toLowerCase() === "india" ? course.indianFee : course.foreignFee;
+    
+            // Adjust price based on installment option
+            let installmentFactor = selectedInstallment === "1" ? 1 : selectedInstallment === "2" ? 2 : 3;
+            courseAmountInput.value = (totalPrice / installmentFactor).toFixed(2).replace(/\.00$/, "");
+        }
+    
+        // Event Listeners
+        courseSelect.addEventListener("change", updateCourseAmount);
+        installmentSelect.addEventListener("change", updateCourseAmount);
+    </script>
+    
+    
+    <script>
+        // Backend data: Enrolled users and their enrolled courses
+        const enrolledUsers = [
+            {% for enrolledUser in enrolledUsers %}
+                { 
+                    email: "{{ enrolledUser.user.email }}", 
+                    courseId: "{{ enrolledUser.course.id }}", 
+                    no_of_installments: "{{ enrolledUser.no_of_installments }}",
+                    first_installments: "{{ enrolledUser.first_installments|yesno:'true,false' }}",
+                    second_installments: "{{ enrolledUser.second_installments|yesno:'true,false' }}",
+                    third_installments: "{{ enrolledUser.third_installments|yesno:'true,false' }}"
+                },
+            {% endfor %}
+        ];
+    
+        // Backend data: All available courses
+        const allCourses = [
+            {% for course in courses %}
+                { id: "{{ course.id }}", title: "{{ course.title }}" },
+            {% endfor %}
+        ];
+    
+        console.log("Enrolled Users:", enrolledUsers);
+    
+        document.getElementById("users").addEventListener("input", function () {
+            const selectedEmail = this.value.trim();
+            const courseSelect = document.getElementById("course");
+            courseSelect.innerHTML = '<option value="">Select a course...</option>'; // Reset options
+    
+            // Get enrolled courses and check installments
+            const enrolledCourses = enrolledUsers.filter(enrolledUser => enrolledUser.email === selectedEmail);
+    
+            console.log("User Enrollments:", enrolledCourses);
+    
+            // Available courses based on installment completion
+            const availableCourses = allCourses.filter(course => {
+                // Find the user's enrollment record for this course
+                const enrollment = enrolledCourses.find(enrolled => enrolled.courseId === course.id);
+    
+                // If no enrollment exists for this course, allow selection
+                if (!enrollment) return true;
+    
+                // Convert "true"/"false" strings to boolean
+                const firstPaid = JSON.parse(enrollment.first_installments);
+                const secondPaid = JSON.parse(enrollment.second_installments);
+                const thirdPaid = JSON.parse(enrollment.third_installments);
+    
+                // Handle different payment types
+                if (enrollment.no_of_installments == "1") {
+                    // Single Pay: Remove if fully paid
+                    return false;
+                } 
+                else if (enrollment.no_of_installments == "2") {
+                    // Twice Pay: Show if second installment is still pending
+                    return !secondPaid;
+                } 
+                else if (enrollment.no_of_installments == "3") {
+                    // Thrice Pay: Show if any installment is still pending
+                    return !firstPaid || !secondPaid || !thirdPaid;
+                }
+    
+                return false; // Default case (should never hit)
+            });
+    
+            console.log("Available Courses:", availableCourses);
+    
+            // Handle case where no courses are available
+            if (availableCourses.length === 0) {
+                courseSelect.innerHTML = '<option value="" disabled>No available courses</option>';
+                return;
+            }
+    
+            // Populate dropdown with only available courses
+            availableCourses.forEach(course => {
+                const option = document.createElement("option");
+                option.value = course.id;
+                option.textContent = course.title;
+                courseSelect.appendChild(option);
+            });
+        });
+    </script>
+    
+
+    
+    <script>
+        // Convert Django order data into a JavaScript object
+        const orders = [
+            {% for order in orders %}
+                { email: "{{ order.user.email }}", order_number: "{{ order.order_number }}" },
+            {% endfor %}
+        ];
+    
+        document.getElementById("users").addEventListener("input", function() {
+            const selectedEmail = this.value;
+            const orderDatalist = document.getElementById("order");
+            orderDatalist.innerHTML = ""; // Clear previous options
+    
+            // Filter orders based on selected email and populate the datalist
+            orders.filter(order => order.email === selectedEmail).forEach(order => {
+                const option = document.createElement("option");
+                option.value = order.order_number;
+                console.log("option_", option)
+                orderDatalist.appendChild(option);
+            });
+        });
+    </script>
+
+    
+
+    <script>
+
+        function generatePaymentId() {
+            // Example payments array to track already existing payment IDs
+            const payments = [
+                {% for payment in payments %}
+                    '{{ payment.payment_id }}',
+                {% endfor %}
+            ];
+    
+            // Function to generate a random payment ID
+            const generateRandomPaymentId = () => {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                let result = 'Dpay_';
+                for (let i = 0; i < 14; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return result;
+            };
+    
+            // Function to handle generating a unique payment ID
+            const handleGeneratePaymentId = () => {
+                let randomPaymentId;
+                do {
+                    randomPaymentId = generateRandomPaymentId();
+                } while (payments.includes(randomPaymentId)); // Ensure no duplicates
+    
+                // Add the new payment ID to the dropdown
+                const paymentSelect = document.getElementById('payment_id');
+                const newOption = document.createElement('option');
+                newOption.value = randomPaymentId;
+                newOption.textContent = randomPaymentId;
+    
+                // Add the new option to the dropdown and select it
+                paymentSelect.appendChild(newOption);
+                paymentSelect.value = randomPaymentId;
+    
+                // Update the payments array (optional)
+                payments.push(randomPaymentId);
+            };
+    
+            // Assign the `handleGeneratePaymentId` function to the button's click event
+            const generateButton = document.getElementById('generate_payment_id_button');
+            generateButton.addEventListener('click', handleGeneratePaymentId);
+        }
+        // Call the wrapper function to initialize
+        generatePaymentId();
+
+        function genrating_order_number() {
+            async function fetchOrders() {
+                try {
+                    const response = await fetch('/courses/get_orders');
+                    if (!response.ok) throw new Error('Failed to fetch orders');
+        
+                    const data = await response.json();
+                    return data.orders;
+                } catch (error) {
+                    console.error('Error fetching orders:', error);
+                    return [];
+                }
+            }
+        
+            // Event listener for generating a new order number
+            async function handleGenerateOrder() {
+                const orderButton = document.getElementById('generateOrderButton');
+                const orderDropdown = document.getElementById('order_number');
+
+                // Show loader inside the button
+                orderButton.innerHTML = 'Generating...';
+                orderButton.disabled = true;
+
+                try {
+                    // Fetch current orders from the API
+                    const response = await fetch('/courses/get_orders'); // Replace with your actual API endpoint
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch orders');
+                    }
+                    const data = await response.json();
+                    const orders = data.orders || [];
+
+                    // Find the latest order number
+                    let latestOrderNumber = 0;
+                    orders.forEach(order => {
+                        const orderNumber = parseInt(order.order_number);
+                        if (!isNaN(orderNumber) && orderNumber > latestOrderNumber) {
+                            latestOrderNumber = orderNumber;
+                        }
+                    });
+
+                    // Increment the latest order number by 1
+                    const newOrderNumber = latestOrderNumber + 1;
+
+                    // Add the new order number as a new option in the dropdown
+                    const newOption = document.createElement('option');
+                    newOption.value = `${newOrderNumber}`;
+                    newOption.textContent = newOrderNumber;
+                    orderDropdown.appendChild(newOption);
+                    orderDropdown.value = newOption.value;
+                } catch (error) {
+                    console.error('Error fetching orders:', error);
+                } finally {
+                    // Restore button text and enable it
+                    orderButton.innerHTML = 'Generate New Order';
+                    orderButton.disabled = false;
+                }
+            }
+
+            // Attach event listener to the button
+            document.getElementById('generateOrderButton').addEventListener('click', handleGenerateOrder);
+
+        }
+        
+        genrating_order_number();
+        
+
+
+        // Function to display the popup
+        function showPopup() {
+            document.getElementById('overlay-popup').style.display = 'block';
+            document.body.classList.add('dimmed'); // Add the 'dimmed' class to the body
+        }
+
+        // Function to hide the popup
+        function hidePopup() {
+            document.getElementById('overlay-popup').style.display = 'none';
+            document.body.classList.remove('dimmed'); // Remove the 'dimmed' class from the body
+        }
+
+    </script>
+   
+</body>
+</html>
+
+{% endblock %}

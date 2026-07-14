@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h2>invoice registrants</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Enroll user</th>
+            <th>Enroll date</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for enrolluser in users%}
+            <tr>
+                <td>{{enrolluser.name}}</td>
+                <td>{{enrolluser.invoice.url}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

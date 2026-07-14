@@ -1,0 +1,68 @@
+{% load static %}
+<!-- ======= Header ======= -->
+<header id="header" class="fixed-top mb-5">
+
+    <!-- top header -->
+    <div class="header-top ">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 col-sm-2 col-2 header-top-left no-padding">
+          </div>
+          <div class="col-lg-6 col-sm-10 col-10">
+            <ul>
+              <li><a href="{% url 'contact' %}" target="_blank">Any Queries?</a></li>
+              <li><a href="https://www.linkedin.com/company/deepeigen/" target="_blank"><i class="fab fa-linkedin"></i></a></li>
+              <li><a href="https://twitter.com/DeepEigen" target="_blank"><i class="fab fa-twitter"></i></a></li>
+              <li><a href="tel:7552980307"><i class="fas fa-phone"></i></a></li>
+              <li><a href="mailto:contact@deepeigen.com"><i class="fas fa-envelope"></i></a></li></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- bottom header/navigation -->
+    <div class="container d-flex align-items-center justify-content-lg-between">
+      {% load static %} <a href="{% url 'home' %}">
+      <img src= "{% static 'img/testing.png'%}" alt="logo" width="100" height="75"/> </a>
+      <!-- <div class="logo me-auto me-lg-0 col-2 mt-2"><a href="{% url 'home' %}"><p class="company_name">Deep Eigen</p></a></div> -->
+      <div class="mr-6">
+      </div>
+      <nav id="navbar" class="navbar order-last order-lg-0">
+        <ul>
+          <li class="dropdown"><a class="nav-link" href="{% url 'courses'%}"><span>Courses</span> <i class="bi bi-chevron-down"></i></a>
+            <ul>
+              {% for course in courses_list %}
+                <li><a href="{% url 'course_detail' course.id course.url_link_name%}">{{course.title}}</a></li>
+              {% endfor %}
+            </ul>
+          </li>
+          <li><a class="nav-link" href="{% url 'team' %}">Team</a></li>
+          
+          <li><a class="nav-link" href="{% url 'contact' %}">Contact Us</a></li>
+          <li><a class="nav-link" href="{% url 'careers' %}">We're Hiring</a></li>
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav><!-- .navbar -->
+      <div class="mr-5">
+
+      </div>
+      <div class="col-lg-3 col-sm-10">
+        {% if user.is_authenticated %}
+          <a class="btn btn-outline-light" href="{% url 'mycourses' %}" id="loginbutton">
+            <i class="fa fa-user-circle" aria-hidden="true" id="username_icon"></i>
+            {{user.username}}
+          </a>
+          <a class="btn btn-outline-danger" href="{% url 'logout' %}" id="loginbutton">Log out</a>
+        {% else %}
+          <a class="btn btn-outline-primary" href="{% url 'login' %}" id="loginbutton">Log In</a>
+          <a class="btn btn-outline-success" href="{% url 'register' %}" id="loginbutton">Sign Up</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+<!-- End Header -->
+{% if not fixed_header %}
+  <div class="space"></div>
+{% endif %}

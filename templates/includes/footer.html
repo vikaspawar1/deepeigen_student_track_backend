@@ -1,0 +1,194 @@
+{% load static %}
+
+<footer id="footer">
+    <!-- top footer -->
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-lg-6 col-md-6 col-sm-6">
+            <div class="footer-info">
+              <a href="#">
+                <h3 class="company_name">Deep Eigen</h3>
+              </a>
+              <p>
+                Deep Eigen is an education platform provding access to graduate level courses
+                related to artificial intelligence and autonomous driving, with an aim to provide quality contents at a level
+                similar to the top-universities around the world.
+              </p>
+              <div class="social-links mt-3">
+                <a href="tel:7552980307"><i class="fas fa-phone"></i></a>
+                <a href="mailto:contact@deepeigen.com"><i class="fas fa-envelope"></i></a>
+                <a href="https://twitter.com/DeepEigen" class="twitter" target="_blank"><i class="bx bxl-twitter"></i></a>
+                <a href="https://www.linkedin.com/company/deepeigen/" class="linkedin" target="_blank"><i class="bx bxl-linkedin"></i></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6 col-sm-6 footer-links">
+            <h4>Deep Eigen</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'home' %}">About Us</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'courses' %}">Courses</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'team' %}">Team</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'contact' %}">Contact</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 col-sm-6 footer-links">
+            <h4>Quick Links</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'faqs' %}" target="_blank">FAQ's</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'terms' %}" target="_blank">Terms of service</a></li>
+               <li><i class="bx bx-chevron-right"></i> <a href="{% url 'privacypolicy' %}" target="_blank">Privacy Policy</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="{% url 'html_sitemap' %}" target="_blank">Sitemap</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="https://www.youtube.com/channel/UCZTd22jmaDPUM2E6QbWc5gg" target="_blank">Subscribe</a></li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- bottom footer -->
+    <div class="container">
+      <div class="copyright">
+        &copy; Copyright <strong><span>Deep Eigen</span></strong> Private Limited All right reserved.
+      </div>
+    </div>
+
+</footer>
+<!-- End Footer -->
+
+<!-- return to top button -->
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+<!-- Vendor JS Files -->
+<script src="{% static 'vendor/aos/aos.js'%}"></script>
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js'%}"></script>
+<script src="{% static 'vendor/glightbox/js/glightbox.min.js'%}"></script>
+<script src="{% static 'vendor/isotope-layout/isotope.pkgd.min.js'%}"></script>
+<script src="{% static 'vendor/purecounter/purecounter.js'%}"></script>
+<script src="{% static 'vendor/swiper/swiper-bundle.min.js'%}"></script>
+
+<!-- Jquery cdn -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<!-- main javascript file -->
+<script src="{% static 'js/main.js'%}"></script>
+
+<script>
+  setTimeout(function(){
+    $('#message').fadeOut('slow')
+  }, 4000)
+</script>
+
+{% if animation_flg %}
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script>
+    particlesJS("course_hero", {
+          "particles": {
+          "number": {
+          "value": 100,
+          "density": {
+          "enable": true,
+          "value_area": 600
+          }
+          },
+          "color": {
+            "value": ["#aa73ff", "#f8c210", "#83d238", "#33b1f8"]
+          },
+          "shape": {
+            "type": "circle",
+            "stroke": {
+              "width": 0,
+              "color": "#ff0000"
+            },
+            "polygon": {
+              "nb_sides": 6
+              }
+          },
+          "opacity": {
+            "value": 1,
+            "random": false,
+            "anim": {
+            "enable": false,
+            "speed": 2,
+            "opacity_min": 0,
+            "sync": false
+            }
+          },
+          "size": {
+            "value": 2.5,
+            "random": false,
+            "anim": {
+              "enable": true,
+              "speed": 20,
+              "size_min": 0,
+              "sync": false
+              }
+          },
+          "line_linked": {
+          "enable": true,
+          "distance": 110,
+          "color": "#fff",
+          "opacity": 1,
+          "width": 1
+          },
+          "move": {
+          "enable": true,
+          "speed": 2,
+          "direction": "none",
+          "random": false,
+          "straight": false,
+          "out_mode": "out",
+          "bounce": false,
+          "attract": {
+          "enable": false,
+          "rotateX": 3000,
+          "rotateY": 3000
+          }
+          }
+          },
+          "interactivity": {
+          "detect_on": "canvas",
+          "events": {
+          "onhover": {
+          "enable": true,
+          "mode": "grab"
+          },
+          "onclick": {
+          "enable": true,
+          "mode": "push"
+          },
+          "resize": true
+          },
+          "modes": {
+          "grab": {
+          "distance": 100,
+          "line_linked": {
+          "opacity": 1
+          }
+          },
+          "bubble": {
+          "distance": 400,
+          "size": 200,
+          "duration": .4
+          },
+          "repulse": {
+          "distance": 200,
+          "duration": 0.4
+          },
+          "push": {
+          "particles_nb": 4
+          },
+          "remove": {
+          "particles_nb": 2
+          }
+          }
+          },
+          "retina_detect": true
+          });
+  </script>
+{% endif %}

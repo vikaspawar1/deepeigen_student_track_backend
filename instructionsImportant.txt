@@ -1,0 +1,64 @@
+"""
+Instructions Added 27/12/2022
+
+Shani Dev
+Deep Eigen
+"""
+
+# Case: Environment on Elastic Beanstalk got suspended due to past overdue. When cleared out the past overdue AWS console access is updated but the application status was still suspended (Grey), so in actions when selected
+	- rebuild the environment
+		= Whole environment got reinitiated but it deleted the original database present in RDS database and return back an empty application.
+
+		!!!! Important Don't rebuild the environment if there is no backup of the databases present.
+
+	# Resolution:
+		= Inside RDS Snapshots there is a small snapshot which will get created whenever the present database will be deleted for any reason, so used that snapshot to create one more instance of the database and checked on local version of the site and also in DBeaver (Database Application), everything was fine, able get access to admin page and also the database stored from May to December 2022.
+
+		!!! Important Note here is to check if snapshots are getting created time to time in AWS RDS
+
+		Also to chanage the configuration of the database in AWS Elastic BeanStalk environemnt need to first "Decouple the existing Database" and then selecting the correct database endpoint from RDS to the application and reinitiating the Application
+
+####################################
+# Comment Added -> 15/02/2023
+####################################
+-> Settings in Local DeepEigen app and AWS DeepEigen App are different in Admin Panel,
+	- So need to migrate the settings first to ensure no change in user database.
+	
+	
+
+Instructions Added 28/05/2024
+
+Vamsi krishna
+Deep Eigen
+
+# Case: To retrive the data from after connecting live database connection use following cmd 
+         
+		-- $ python manage.py dumpdata --exclude auth.permission --exclude contenttypes --exclude admin.logentry > db1.json (any json file name)
+
+		 To load the data from json file into data base
+
+		 -- $ python manage.py loaddata json_file_name (json file to upload)
+		 
+--> Postgres installation tutorials = https://www.hostinger.in/tutorials/how-to-install-postgresql-on-ubuntu
+
+
+
+# Case : Trace the error in dump data of database use cmd -- $  python manage.py dumpdata --indent=2 -v 2 --traceback app_name
+
+
+# Case : TO DELETE THE ENTIRE DATABASE IN PGADMIN FOLLOW THESE STEPS --
+
+		1. Open pgadmin and select daatabase
+		2. Select schemas and in that right click Tables option
+		3. Select Psql tool
+		4. Add the follwing code -- DO $$ 
+									DECLARE
+									r RECORD;
+									BEGIN
+									FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+										EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+									END LOOP;
+									END $$;
+		5. execute the code line by line 
+		6. After completing execution of all lines you will get printed lines of deleted tables names
+		7. Refresh table  you will see empty !!

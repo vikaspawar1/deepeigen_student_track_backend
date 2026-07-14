@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <main id="main">
+        <div class="container">
+        <div class='text-center mt-4 mb-2'>
+            <h2 style="color:#00004d;"><b>{{course.title}}</b></h2>
+        </div>
+        <br>
+        <br>
+        <div class="row">
+                
+            {% if enrolled_user %}
+                {% include 'courses/section_sidebar.html' with course=course sections=sections %}
+
+
+                <div class="col-md-9" data-aos="fade-left">
+                    <!-- Tabs content -->
+                    <div class="tab-content pb-5">
+                        <div class="tab-pane fade shadow rounded bg-white show active p-5">
+                            <h4 class="font-italic mb-4 dark-blue">Optional Assignments</h4>
+                            <div class="row">
+
+                                <div class="col-md-3"></div>
+            
+                                <div class="col-md-6 download">
+                                    <div class="invoice-items text-center">
+                                        <div class="table-responsive" tabindex="0">
+                                            <table class="table table-bordered">
+                                                <tfoot>
+                                                
+                                                  <tr>
+                                                      <th class="per70 text-center">Assignment</th>
+                                                  </tr>
+                                                  {% for assignment in optional_assignments %}
+                                                    <tr>
+                                                        <td><a href="{{assignment.pdf.url}}" download><i class="fa fa-download"></i> {{assignment.name}}</a>
+                                                        </td>
+                                                    </tr>
+                                                  {% endfor %}
+                                              </tfoot>
+                                          </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+            
+                                <div class="col-md-3">
+                                </div>
+                              </div>
+                        </div>
+                    </div>
+                </div>
+            <!-- Tabs content -->
+            {% else %}
+                <div class="col-lg-2"></div>
+                    <div class="col-lg-8">
+                        <div class="tab-content pb-5">
+                            <div class="tab-pane fade shadow rounded bg-white show active p-5">
+                            <h4 class="font-italic mb-4 dark-blue">Validity Ended</h4>
+                            <p class="font-italic text-muted mb-2">Your Course duration has been ended, please contact us via email[contact@deepeigen.com] if you want additional time to cover the course.</p>
+                            </div>
+                        </div>
+                    </div>
+                <div class="col-lg-2"></div>
+            {% endif %}
+            
+
+        </div>
+        </div>
+        
+    </main>
+    <div class="container">
+        <ol aria-label="breadcrumbs" class="breadcrumblist" itemscope="" itemtype="http://schema.org/BreadcrumbList" role="menubar">
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <a href="{% url 'home'%}" itemprop="item">
+              <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Deep Eigen</font></font></h6>
+            </a>
+            <meta content="1" itemprop="position">
+          </li>
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <a href="{% url 'courses'%}" itemprop="item">
+              <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Courses</font></font></h6>
+            </a>
+            <meta content="2" itemprop="position">
+          </li>
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <a href="{% url 'course_detail' course.id course.url_link_name%}" itemprop="item">
+              <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">{{course.title}}</font></font></h6>
+            </a>
+            <meta content="3" itemprop="position">
+          </li>
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Optional Assignments</font></font></h6>
+            <meta content="4" itemprop="position">
+          </li>
+        </ol>
+    </div>
+{% endblock %}

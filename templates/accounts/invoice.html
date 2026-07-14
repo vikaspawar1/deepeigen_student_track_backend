@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<main id="main">
+    <div class="padding-y bg">
+
+        <div class="container  pb-5" id="Invoice">
+
+            <div class="section-title">
+                
+                <br>
+                <h2>My Invoice</h2>
+                <br>
+
+            </div>
+            <style>
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                text-align: left;
+              }
+            
+              th, td {
+                border: 1px solid #ccc;
+                padding: 12px;
+              }
+            
+              th {
+                background-color: #9b9a9a;
+                font-weight: bold;
+                color:white;
+              }
+            
+              a {
+                text-decoration: none;
+                color: #216380;
+                transition: color 0.3s;
+              }
+            
+              a:hover {
+                
+                color: #155968;
+              }
+            
+              .download {
+                text-align: center;
+                width: 50px;
+              }
+            
+              @media (max-width: 600px) {
+                table, th, td {
+                  font-size: 14px;
+                }
+                
+              }
+              
+              #invoice-table,#invoice-empty{
+
+                width:70%;
+                margin:3rem 0;
+                opacity: 0;
+                transform:translate(0,100px);
+                
+              }
+              
+
+              @keyframes invoice-up {
+
+                0%{
+
+                  
+                  transform: translateY(100px);
+                }
+                100%{
+
+                  opacity: 1;
+                  transform: translateY(0px);
+
+
+                }
+                
+              }
+
+            </style>
+            <div class="row">
+                {% include 'includes/dashboard_sidebar.html' %}
+
+                {% if orders_exist > 0 %}
+
+                <div class="col-lg-7 ms-4 pb-5 " style="width:70%;margin:3rem 0;" id="invoice-table"> 
+                
+                  <table>
+                    <tr>
+                      <th>Name</th>
+                      <th>Payment_ID</th>
+                      <th>Course</th>
+              
+                      <th>GET Invoice</th>
+                      {% for reg in registrants %}
+                      <tr>
+                          <td>
+                              {% if reg.order and reg.order.first_name and reg.order.last_name %}
+                                  {{ reg.order.first_name }} {{ reg.order.last_name }}
+                              {% else %}
+                                  <span>Data Unavailable</span>
+                              {% endif %}
+                          </td>
+                      
+                          <td>
+                              {% if reg.order and reg.order.payment and reg.order.payment.payment_id %}
+                                  {{ reg.order.payment.payment_id }}
+                              {% else %}
+                                  <span>Not Available</span>
+                              {% endif %}
+                          </td>
+                      
+                          <td>
+                              {% if reg.order and reg.order.course %}
+                                  {{ reg.order.course }}
+                              {% else %}
+                                  <span>Not Available</span>
+                              {% endif %}
+                          </td>
+                      
+                          <td>
+                              {% if reg.order and reg.order.payment and reg.order.payment.payment_id and reg.order.course and reg.order.course.id and reg.order.order_number %}   
+                                  <a href="#" 
+                                     style="text-decoration: underline; color:rgb(33, 77, 88);" 
+                                     onclick="downloadInvoice('{{ reg.order.payment.payment_id }}', '{{ reg.order.course.id }}', '{{ reg.order.order_number }}')">
+                                      <div><i class="bi bi-download"></i></div>Download
+                                  </a>
+                              {% else %}
+                                  <span>No Invoice Available</span>
+                              {% endif %}
+                          </td>
+                      </tr>
+                      {% endfor %}
+                      
+                  </table>
+
+            
+              </div>
+
+             
+
+
+                {% else %}
+                
+              <div  class="col-lg-7 ms-4 pb-5 " style="width:70%;" id="invoice-empty">
+                <h1 style="background-color: #0d6efd;padding: 1rem; border-radius: 10px;margin:3rem 0;color:white;font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',sans-serif;text-align:center;font-size: 2.4rem;">There are no invoices currently</h1>
+              </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<script>
+   
+
+   const invoiceTbl=document.getElementById('invoice-table');
+
+   const invoiceEmp=document.querySelector('#invoice-empty');
+
+   console.log(invoiceEmp);
+  
+  window.addEventListener('load',()=>{
+
+    if(invoiceEmp!=null){
+
+      invoiceEmp.style.animation="invoice-up 0.8s ease 0.1s forwards";
+    
+    }
+    else{
+      invoiceTbl.style.animation="invoice-up 0.8s ease 0.2s forwards";
+    }
+
+
+  })
+
+</script>
+
+
+<script>
+  function downloadInvoice(paymentId, courseId, orderNumber) {
+    console.log("yes running")
+    const url = `/accounts/invoice/${paymentId}/${courseId}/${orderNumber}`; // API endpoint
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch the invoice');
+            }
+            return response.blob(); // Expecting a file (blob) in the response
+        })
+        .then(blob => {
+            const downloadUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = `Invoice_${paymentId}_${courseId}.pdf`; // Set the filename dynamically
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(downloadUrl); // Clean up the object URL
+        })
+        .catch(error => {
+            console.error('Error downloading the invoice:', error);
+        });
+}
+</script>
+{% endblock %}

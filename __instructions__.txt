@@ -1,0 +1,78 @@
+"""
+Instructions to Execute and Deploy
+
+	- Deploying Django Application to AWS
+
+VamsiKrishna A., Shani Dev
+15/01/2023
+"""
+
+- env created using python3.7
+# Activate the Environment
+$ source env/bin/activate
+# Install Django ===> Version 3.2
+$ pip install django==3.2
+# Install Dependencies
+$ pip install django-ckeditor
+$ pip install django-bleach
+$ pip install Pillow
+$ deactivate 															# ! Do not deactivate if the python version is different or less than python3.7
+$ pip install awsebcli
+$ source env/bin/activate
+$ pip freeze > requirements.txt
+# AWS Stuff
+$ mkdir .ebextensions
+$ nano -P .ebextensions/django.config
+	### make changes accordingly
+		  option_settings:
+		  aws:elasticbeanstalk:container:python:
+		    #WSGIPath: swaayatt_web/wsgi.py
+		    WSGIPath: swaayatt_web.wsgi:application
+# Initi the eb with AWS secret Key-Pair
+$ eb init -p python-3.7 swaayatt
+# to use SSH connection
+$ eb init
+# Create an environment and deploy Application
+$ eb create swaayatt-env
+"""""""""""""""""""""""""""""""""""""""""
+	Health - Degraded : 
+	Impaired services on all instances.
+	Health - Severe
+    Following services are not running: web.
+"""""""""""""""""""""""""""""""""""""""""
+	Resolution: https://stackoverflow.com/questions/63011195/how-to-resolve-aws-elastic-beanstalk-django-health-check-problems
+	conclusion: doesn't work
+
+	# Problem resolved when setting requirements.txt file manually
+$ Create static-files.config in .ebextenstions folders
+	Paste this content:
+		option_settings:
+  			aws:elasticbeanstalk:environment:proxy:staticfiles:
+    		/static: static
+$ python manange.py collectstatic 										# Collect Static Files
+	# Check swaayatt_web/settings.py
+	# There are two comments at the end for static files (while deploying and while local)
+$ TO Connect to a Domain
+	- First go to godaddy, click on your domain: swaayattrobots.com
+	- click on change nameservers,
+	- now go to AWS Route 53, create a new hosted zone with the same name as domain swaayattrobots.com
+	- copy nameservers name for eg: "ns-1061.awsdns-04.org" all of them and add them to godaddy namerserver
+	- now in AWS click on "create records"
+	- add a record with turning alias option on, select elastic beanstalk environment, then select zone and
+	then select the Environment URL
+$ SSL Certificate
+	- Go to Certificate manger
+	- change the zone
+	- click on Request a Certificate
+	- then Request a Public Certificate
+	- now add the domain name
+	- now click on Request Certificate
+		-> put URL as *.swaayattrobots.com and click on add records to Route 53
+
+	Changes in Environment
+		Configure environment in Elastic Bean Stalk
+		- go to configuration
+		- go to loadbalancer
+		- click on add listener
+		- set instance port to 443 and protocol to https and other to 80 and protocol to http
+		- click on apply (it will reload the environment)

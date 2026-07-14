@@ -1,0 +1,25 @@
+{% load static %}
+
+
+{% autoescape off %}
+<!DOCTYPE html>
+<html lang="en">
+    <body>
+        <br>
+        <div align="center">
+            <a href="https://{{domain}}{% url 'home' %}" style="text-decoration: none; font-size: 40px; color: #c02537; font-family: 'Arvo', serif;"><b>&nbsp;Deep Eigen</b></a>
+        </div>
+        <br>
+        <h2 style="color: orange;">Hi {{user.first_name}},</h2>
+        <p style="font-size: 16px;">Please click on below link to confirm your registration.
+            <br>
+            <a href="https://{{domain}}{% url 'activate' uidb64=uid token=token %}">Activate Account</a>
+        </p>
+        <br>
+        <p>
+            If you think it's not you, please ignore this email.</p>
+        <br>
+        <p style="color: grey;">Regards,<br>DeepEigen Team</p>
+    </body>
+</html>
+{% endautoescape %}

@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+    <main id="main">
+        <div class="container pt-4">
+        <div class='text-center mt-4 mb-2'>
+            {% comment %} <h2 style="color:#00004d;"><b>AI-1.0X: Introduction to Fundamentals of Machine Learning</b></h2> {% endcomment %}
+            <h2 style="color:#00004d;"><b>{{ course }}</b></h2>
+        </div>
+        <br>
+        <br>
+        <div class="row">
+            {% include 'includes/alerts.html' %}
+            <div class="col-md-3" data-aos="fade-right">
+                <!-- Tabs nav -->
+            <div class="nav flex-column nav-pills nav-pills-custom">
+                <a class="nav-link mb-3 p-3 shadow" href="{% url 'weekly_forum' course.id course.url_link_name section.url_name %}">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="font-weight-bold small text-uppercase ml-2">Weekly Forum</span>
+                </a>
+
+                <a class="nav-link mb-3 p-3 shadow" href="{% url 'discussion_forum' course.id course.url_link_name %}">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="font-weight-bold small text-uppercase">Discussion Forum</span>
+                </a>
+
+                <a class="nav-link mb-3 p-3 shadow" href="{% url 'course_overview' course.id course.url_link_name %}">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="font-weight-bold small text-uppercase">Overview</span>
+                </a>
+            </div>
+
+            </div>
+
+
+            <div class="col-md-9" data-aos="fade-left">
+                <!-- Tabs content -->
+                
+            <div class="tab-content pb-5">
+                <div class="tab-pane fade shadow rounded bg-white show active p-5">
+                <div class="row text-center">
+                    <div class="col-lg-12">
+                    <h4 class="font-italic mb-4" style="color:#0d6efd"></i>Question: {{question.title}}</h4>
+                    <br>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <h5 class="font-italic mb-4 dark-black overflow">
+                    <b class="mb-3">Description:</b>
+                    <p class="right-shift">
+                        {{question.question|linebreaks}}
+                    </p>
+                    
+                    </h5>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-4">
+                    <h5 class="font-italic mb-4">
+                        <i class="fa fa-user"></i>
+                        <b>{{questioned_user.full_name}}</b>
+                    </h5>
+                    </div>
+                    <div class="col-lg-5"></div>
+                    <div class="col-lg-3">
+                    <p>Asked at {{ question.created_date|date:'M d Y' }}</p>
+                    </div>
+                </div>
+
+
+                <hr>
+                
+                <div class="row">
+                    <div class="col-lg-4">
+                    <h5 class="font-italic mb-4">
+                        <b>Replies: {{replies.count}}</b>
+                    </h5>
+                    </div>
+                    <div class="col-lg-5"></div>
+                    <div class="col-lg-3">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Filter
+                        </button>
+                        <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{{request.path}}?filter=all">All</a>
+                        <a class="dropdown-item" href="{{request.path}}?filter=byyou">Replied by you</a>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <form action="{% url 'create_reply' course.id course.url_link_name section.url_name question.id %}" method="POST" class="right-shift">
+                        {% csrf_token %}
+                        <label for="reply" class="mb-2">Leave a response</label>
+                        <textarea class="form-control" id="reply" rows="5" name="reply" required></textarea>
+                        <br>
+                        <div class="col-12 p-0 text-right">
+                        <button type="submit" class="btn btn-info">Submit</button>
+                        </div>
+                    </form>
+                </div>
+
+                <br>
+
+                {% for reply in replies %}
+                    {% load custom_tags %}
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <h5 class="font-italic mb-4">
+                                <i class="fa fa-user"></i>
+                                {% user_detail reply.user_id as user %}
+                                <b>{{user.full_name}}</b>
+                            </h5>
+                        </div>
+                        <div class="col-lg-5"></div>
+                        <div class="col-lg-3">
+                            <p>Replied at {{ reply.created_date|date:'M d Y' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <h5 class="font-italic mb-2 dark-black overflow big-right-shift">
+                        {{reply.reply|linebreaks}}
+                        </h5>
+                    </div>
+
+                    <div class="big-right-shift">
+                        <button class="btn btn-secondary btn-sm big-right-shift" data-toggle="collapse" data-target="#subreply_{{reply.id}}">
+                            <i class="fa fa-icon fa-reply"></i>
+                            Reply
+                        </button>
+                        <br>
+                        <br>
+                        <div class="form-group big-right-shift collapse" id="subreply_{{reply.id}}">
+                            <form action="{% url 'create_subreply' course.id course.url_link_name section.url_name question.id reply.id%}" method="POST" class="right-shift">
+                                {% csrf_token %}
+                                <textarea class="form-control" id="reply" rows="5" name="sub_reply" required></textarea>
+                                <br>
+                                <div class="col-12 p-0 text-right">
+                                <button type="submit" class="btn btn-info">Submit</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="big-right-shift">
+                        {% for sub_reply in reply.get_approved_sub_replies %}
+                            <div class="row big-right-shift">
+                                <div class="col-lg-4">
+                                    <h5 class="font-italic mb-4">
+                                        <i class="fa fa-user"></i>
+                                        {% user_detail sub_reply.user_id as user %}
+                                        <b>{{user.full_name}}</b>
+                                    </h5>
+                                </div>
+                                <div class="col-lg-5"></div>
+                                <div class="col-lg-3">
+                                    <p>Replied at {{ sub_reply.created_date|date:'M d Y' }}</p>
+                                </div>
+                            </div>
+                            <div class="row big-right-shift">
+                                <h5 class="font-italic mb-2 dark-black overflow big-right-shift">
+                                {{sub_reply.sub_reply|linebreaks}}
+                                </h5>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <hr>
+                    
+                {% endfor %}
+
+                
+
+                </div>
+            </div>
+
+            </div>
+            <!-- Tabs content -->
+            
+
+        </div>
+        </div>
+        
+    </main>
+
+    <br>
+    <br>
+{% endblock %}
+

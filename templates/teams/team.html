@@ -1,0 +1,198 @@
+
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <main id="main">
+  <!-- Hero Section -->
+        <div class="container">
+                <div class="text-center mt-5">
+                    <h2 class='research_head'><b>Core Team and Advisory Board</b></h2>
+                </div>
+        </div>
+  <!-- Core Team Section -->
+  <section class="">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="fw-bold mb-3" style="color:#00004d;">Core Team Members</h2>
+        <p class="text-muted fs-5 mx-auto" >
+          Meet the incredible people who are making a difference at our organization.
+        </p>
+      </div>
+
+        <!-- core member  -->
+        <div class="row g-4 justify-content-center">
+            {% for member in core_team %}
+            <div class="col-md-6 col-lg-4" >
+            <div class="card border-0 shadow-lg h-100 position-relative overflow-hidden rounded-4" style="transition: all 0.3s ease; padding: 1.5rem;">
+                <div class="position-relative" style="aspect-ratio: 1 / 1; " style='height: 100%'>
+                <img src="{{ member.photo.url }}" alt="{{ member.first_name }} {{ member.last_name }}"
+                    class="img-fluid w-100 h-100 object-fit-cover rounded-top-4" style="object-position: center center;">
+                {% if member.linkedin_link %}
+                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                    style="background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent); opacity: 0; transition: opacity 0.3s;"
+                    onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+                    <a href="{{ member.linkedin_link }}" target="_blank" class="text-white fs-2">
+                    <i class="lucide-linkedin-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-linkedin" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" />
+                            <rect width="4" height="12" x="2" y="9" />
+                            <circle cx="4" cy="4" r="2" />
+                        </svg>
+                    </i>
+                    </a>
+                </div>
+                {% endif %}
+                </div>
+                <div class="card-body text-left px-4 py-4">
+                <h5 class="fw-bold text-dark mb-1">{{ member.first_name }} {{ member.last_name }}</h5>
+                <p class="text-muted small mb-0">{{ member.role }}</p>
+                {% if member.job_role %}
+                  <p class="text-muted small mb-0">{{ member.job_role }}</p>
+                {% endif %}
+                </div>
+            </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Teaching assistant -->
+        <div class="row g-4 justify-content-center" style="    margin-top: 20px;">
+            {% for member in core_team_and_TA %}
+            <div class="col-md-6 col-lg-4" >
+            <div class="card border-0 shadow-lg h-100 position-relative overflow-hidden rounded-4" style="transition: all 0.3s ease; padding: 1.5rem;">
+                <div class="position-relative" style="aspect-ratio: 1 / 1;">
+                <img src="{{ member.photo.url }}" alt="{{ member.first_name }} {{ member.last_name }}"
+                    class="img-fluid w-100 h-100 object-fit-cover rounded-top-4" style="object-position: center center;">
+                {% if member.linkedin_link %}
+                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                    style="background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent); opacity: 0; transition: opacity 0.3s;"
+                    onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+                    <a href="{{ member.linkedin_link }}" target="_blank" class="text-white fs-2">
+                    <i class="lucide-linkedin-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-linkedin" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" />
+                            <rect width="4" height="12" x="2" y="9" />
+                            <circle cx="4" cy="4" r="2" />
+                        </svg>
+                    </i>
+                    </a>
+                </div>
+                {% endif %}
+                </div>
+                <div class="card-body text-left px-4 py-4">
+                <h5 class="fw-bold text-dark mb-1">{{ member.first_name }} {{ member.last_name }}</h5>
+                <p class="text-muted small mb-0">{{ member.role }}</p>
+                {% if member.job_role %}
+                  <p class="text-muted small mb-0">{{ member.job_role }}</p>
+                {% endif %}
+                </div>
+            </div>
+            </div>
+            {% endfor %}
+        </div>
+
+      <!-- Others -->
+      {% comment %} <div class="row g-4 justify-content-center" style="    margin-top: 20px;">
+        {% for member in core_team %}
+        <div class="col-md-6 col-lg-4" >
+          <div class="card border-0 shadow-lg h-100 position-relative overflow-hidden rounded-4" style="transition: all 0.3s ease; padding: 1.5rem;">
+            <div class="position-relative" style="aspect-ratio: 1 / 1;">
+              <img src="{{ member.photo.url }}" alt="{{ member.first_name }} {{ member.last_name }}"
+                class="img-fluid w-100 h-100 object-fit-cover rounded-top-4" style="object-position: center center;">
+              {% if member.linkedin_link %}
+              <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                style="background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent); opacity: 0; transition: opacity 0.3s;"
+                onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+                <a href="{{ member.linkedin_link }}" target="_blank" class="text-white fs-2">
+                 <i class="lucide-linkedin-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-linkedin" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" />
+                        <rect width="4" height="12" x="2" y="9" />
+                        <circle cx="4" cy="4" r="2" />
+                    </svg>
+                </i>
+                </a>
+              </div>
+              {% endif %}
+            </div>
+            <div class="card-body text-left px-4 py-4">
+              <h5 class="fw-bold text-dark mb-1">{{ member.first_name }} {{ member.last_name }}</h5>
+              <p class="text-muted small mb-0">{{ member.role }}</p>
+              <p class="text-muted small mb-0">{{ member.job_role }}</p>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div> {% endcomment %}
+
+    </div>
+  </section>
+
+
+  <!-- Advisory Board Section -->
+  <section class="py-5 bg-white">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="fw-bold mb-3" style="color:#00004d;">Academic Advisory Board</h2>
+        <p class="text-muted fs-5 mx-auto" >
+          Experts guiding the strategic and academic direction of our organization.
+        </p>
+      </div>
+      <div class="row g-4 justify-content-center">
+        {% for member in academic_advisory_board %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card border-0 shadow-lg h-100 position-relative overflow-hidden rounded-4" style="transition: all 0.3s ease;padding: 1.5rem;">
+            <div class="position-relative" style="aspect-ratio: 1 / 1;">
+              <img src="{{ member.photo.url }}" alt="{{ member.first_name }} {{ member.last_name }}"
+                class="img-fluid w-100 h-100 object-fit-cover rounded-top-4" style="object-position: center center;">
+              {% if member.linkedin_link %}
+              <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                style="background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent); opacity: 0; transition: opacity 0.3s;"
+                onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'">
+                <a href="{{ member.linkedin_link }}" target="_blank" class="text-white fs-2">
+                 <i class="lucide-linkedin-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-linkedin" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" />
+                        <rect width="4" height="12" x="2" y="9" />
+                        <circle cx="4" cy="4" r="2" />
+                    </svg>
+                    </i>
+                </a>
+              </div>
+              {% endif %}
+            </div>
+            <div class="card-body text-left px-4 py-4">
+              <h5 class="fw-bold text-dark mb-1">{{ member.first_name }} {{ member.last_name }}</h5>
+              <p class="text-muted small mb-0">{{ member.role }}</p>
+                {% if member.job_role %}
+                  <p class="text-muted small mb-0">{{ member.job_role }}</p>
+                {% endif %}
+
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+    </main>
+    <br>
+    <div class="container">
+        <ol aria-label="breadcrumbs" class="breadcrumblist" itemscope="" itemtype="http://schema.org/BreadcrumbList" role="menubar">
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <a href="{% url 'home'%}" itemprop="item">
+              <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Deep Eigen</font></font></h6>
+            </a>
+            <meta content="1" itemprop="position">
+          </li>
+          <li itemprop="itemListElement" itemscope="" itemtype="http://schema.org/ListItem">
+            <h6 itemprop="name"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">Team</font></font></h6>
+            <meta content="2" itemprop="position">
+          </li>
+        </ol>
+    </div>
+{% endblock %}

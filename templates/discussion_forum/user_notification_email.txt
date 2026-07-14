@@ -1,0 +1,10 @@
+{% autoescape off %}
+
+Hi {{user.full_name}},
+
+There is a New response for your comment [{{question.title}}] on {{section.name}} of {{course.title}}
+https://www.deepeigen.com/{% url 'individual_question' course.id course.url_link_name section.url_name question.id %}
+
+If you think it's not you, please ignore this email.
+
+{% endautoescape %}

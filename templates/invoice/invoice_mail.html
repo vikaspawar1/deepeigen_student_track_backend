@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .title {
+            color: #007bff;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .content {
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        .invoice-details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            margin: 15px 0;
+        }
+        .detail-row {
+            margin: 8px 0;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .value {
+            color: #333;
+        }
+        .footer {
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">{{ title_heading }}</div>
+        </div>
+        
+        <div class="content">
+            <p>{{ top_heading }}</p>
+            
+            <div class="invoice-details">
+                <div class="detail-row">
+                    <span class="label">Name:</span>
+                    <span class="value">{{ firstname }} {{ lastname }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Course:</span>
+                    <span class="value">{{ course }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Order ID:</span>
+                    <span class="value">{{ orderid }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Payment Status:</span>
+                    <span class="value">{{ installment_info }}</span>
+                </div>
+            </div>
+            
+            <p>An invoice has been generated for this enrollment. Please see the attached PDF invoice for payment details.</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated email from Deep Eigen. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

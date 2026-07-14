@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<style>
+    table{
+                width: 100%;
+                border-collapse: collapse;
+                text-align: left;
+              }
+            
+              th, td {
+                border: 1px solid #b1adad;
+                padding: 2px;
+              }
+            
+              th {
+                background-color: #878585;
+                font-weight: bold;
+                color:white;
+              }
+    .table-1 th, .table-1 td{
+                    padding: 8px;
+
+
+                }
+
+    .pay_btn{
+
+        margin: 2px auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 150px;
+        padding: 10px 0;
+    }
+    #payment_due_card{
+        
+        transform:translate(0,100px);
+        opacity: 0;
+
+
+    }
+    .installment_card{
+        height:15rem;
+        background-color: rgb(250, 250, 250);
+        box-shadow: 0px 10px 12px 11px rgb(227 227 227);
+        display: flex;gap:1rem;border-radius: 10px;
+        transform: scale(0.99);
+        transition: all 0.5s ease;
+    
+        
+    }
+    .installment_card:hover{
+
+        transform: scale(1.0);
+
+    }
+    #payment_empty{
+        transform:translate(0,100px);
+        width:80%;
+        margin:3rem 0;
+        opacity: 0;
+    }
+
+
+    @keyframes payment-up {
+
+    0%{
+
+                    
+    transform: translateY(70px);
+    }
+    100%{
+
+    opacity: 1;
+    transform: translateY(0px);
+
+
+    }
+
+ }
+</style>
+
+<div class="main">
+    
+    <div class="padding-y bg">
+        <div class="container pb-5">
+
+            <div class="section-title">
+                
+                <br>
+                <h2>My Payments</h2>
+                <br>
+
+            </div>
+
+            <div class="row mt-2">
+
+                {% include 'includes/dashboard_sidebar.html' %}
+                
+                <div class="col-lg-8 col-md-8 ms-2">
+
+
+                <div class="row gy-3" id="payment_due_card">
+                    {% for enroll_user in enroll_users %}
+                    
+                    <div class="col-lg-12 installment_card" >
+
+                        <div style="width:210px;height:116px;">
+                            <img src="{{enroll_user.course.course_image.url}}" style="padding-top:6px" width="100%" height="100%" alt="">
+
+                            <p style="font-weight: 800;">{{enroll_user.course.title}}</p>
+
+                            <p style="text-wrap: nowrap;">  <strong> Course Price : </strong> Rs. {{enroll_user.course.indian_fee}} </p>
+                        </div>
+                        
+                        
+
+                        <div style="width:90%;">
+                       
+                            {% if enroll_user.no_of_installments > 1 %}
+                        
+                            <!-- <h5 style="font-weight: 800;margin:1rem 0;text-align: center;">Payments_due</h5> -->
+                        
+                                {% if enroll_user.no_of_installments == 2%}
+                                <div class="table" style="margin:1rem 0;width:100%;">
+
+                                    <table>
+                                        <tr>
+                                            <th>Installment </th>
+                                            <th>Status </th>
+                                            <th>Amount Paid</th>
+                                            <th>Remaining Amount</th>
+                                        </tr>
+                                        <tr>
+                                            <td>1st</td>
+                                            <td>paid</td>
+                                            <td>Rs: {{enroll_user.payment.amount_paid}}</td>
+                                            <td>Rs: 0.0</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2nd</td>
+                                            
+                                            {% if enroll_user.second_installments == True %}
+                                            <td>paid</td>
+                                            <td>Rs: {{ enroll_user.second_installment_amount }}</td>
+                                            <td>Rs: 0.0</td>
+                                            
+                                            {% else %}
+                                            <td>Due</td>
+                                            <td>Rs: 0.0</td>
+                                            {% load account_custom  %}
+                                            {% installment_course_price  enroll_user.order as installment %}
+                                            <td>Rs: {{ installment.2nd|floatformat:2 }}</td>
+                                            
+                                            {% endif %}
+                                       </tr>
+                                    </table>
+
+                                </div>
+
+                                {% if enroll_user.second_installments != True%}
+
+                                <a href="{% url 'place_order' enroll_user.course.id   enroll_user.course.url_link_name %}" class="btn btn-primary pay_btn"  >Make payment </a>
+
+                                {% else %}
+
+                                <h6 style="color:green;">Note:All payments are done !!</h6>
+
+                                {% endif %}
+
+                                                  
+                                {% elif enroll_user.no_of_installments == 3 %}
+                                <div class="table" style="margin:1rem 0px;width:100%;">
+                                    <table>
+                                        <tr>
+                                            <th>Installment </th>
+                                            <th>Status</th>
+                                            <th>Amount Paid</th>
+                                            <th>Remaining Amount</th>
+                                        </tr>
+                                        <tr>
+                                            <td>1st</td>
+                                            <td>paid</td>
+                                            <td>Rs: {{enroll_user.payment.amount_paid}}</td>
+                                            <td>Rs: 0.0</td>
+                                        </tr>
+                                        <tr>
+                                                <td>2nd</td>
+                                                {% if enroll_user.second_installments == True%}
+                                                <td>paid</td>
+                                                <td>Rs: {{ enroll_user.second_installment_amount }}</td>
+                                                <td>Rs: 0.0</td>
+                                    
+                                                {% else %}
+                                                <td>Due</td>
+                                                <td>Rs: 0.0</td>
+                                                {% load account_custom  %}
+                                                {% installment_course_price  enroll_user.order as installment %}
+                                                <td>Rs: {{ installment.3rd|floatformat:2 }}</td>
+                                                
+                                                {% endif %}
+                                        </tr>
+                                        <tr>
+                                            <td>3rd</td>
+                                            {% if enroll_user.third_installments == True %}
+                                            <td>paid</td>
+                                            <td>Rs: {{ enroll_user.third_installment_amount }}</td>
+                                            
+                                            <td>Rs: 0.0</td>
+                                            {% else %}
+                                            <td>Due</td>
+                                            <td>Rs: 0.0</td>
+                                            
+                                            {% load account_custom  %}
+                                            {% installment_course_price  enroll_user.order as installment %}
+                                            <td>Rs: {{ installment.3rd|floatformat:2 }}</td>
+                                            {% endif %}
+                                        </tr>
+                                    </table>
+
+                                </div>
+                                {% if enroll_user.third_installments != True %}
+
+                                <a href="{% url 'place_order' enroll_user.course.id   enroll_user.course.url_link_name %}" class="btn btn-primary pay_btn" >Make payment </a>
+
+                                {% else %}
+
+                                <h6 style="color:green;">Note:All payments are done !!</h6>
+
+                                {% endif %}
+
+                                {% endif %}
+                               
+                                
+
+                            {% else %}
+                            <!-- <h5 style="font-weight: 800;margin:1rem 0;text-align: center;">Payments_due</h5> -->
+                            <div class="table-1" style="margin:1rem 0;width:100%;">
+                                <table>
+                                    <tr>
+                                        <th>Installment </th>
+                                        <th>Status</th>
+                                        <th>Amount Paid</th>
+                                        <th>Remaining Amount</th>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td>1st</td>
+                                        <td>paid</td>
+                                        <td>Rs: {{enroll_user.payment.amount_paid}}</td>
+                                        <td>Rs: 0.0</td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <h6 style="color:green">Note:All payments are done !! </h6>
+                       
+                            {% endif %}
+
+                           
+                        </div>
+                        
+
+                        </div>
+
+                        {% empty %}
+
+                        <div class="col-lg-12" id="payment_empty">
+                            <h1 style="background-color: #0d6efd;padding: 1rem; border-radius: 10px;margin:3rem 0;color:white;font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',sans-serif;text-align:center;font-size: 2.4rem;">There are no Payment due's currently</h1>
+                        </div>
+                        {% endfor %}
+
+                        
+                    </div>
+             </div>
+            </div>
+            </div>
+
+        </div>
+
+       
+
+    </div>
+
+    
+<script>
+
+    const empty_invoice=document.getElementById('payment_empty');
+    const installment_card=document.querySelector('#payment_due_card');
+   console.log(empty_invoice)
+    window.addEventListener('load',()=>{
+        if (empty_invoice !=null){
+            console.log('yes');
+            installment_card.style.opacity=1.0;
+            empty_invoice.style.animation="payment-up 0.8s ease 0.1s forwards";
+
+        }
+        else{
+           
+            installment_card.style.animation="payment-up 0.8s ease 0.2s forwards";
+
+        }
+    })
+
+    
+</script>
+
+{% endblock %}

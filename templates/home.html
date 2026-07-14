@@ -1,0 +1,251 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+  <!-- ======= Hero Section ======= -->
+    <section id="hero" style="height:100vh" class="d-flex align-items-center justify-content-center">
+    <div class="container" data-aos="fade-up">
+
+        <div class="row justify-content-left" data-aos="fade-up" data-aos-delay="150">
+        <div class="col-lg-11 col-md-12 pt-4">
+            <h1>MAKING CUTTING-EDGE EDUCATION SUSTAINABLE</h1>
+            <h2>Learn Engineering, Science and Mathematics from Field Researchers!</h2>
+            <br><br>
+            <div class="text-center">
+            <a href="{% url 'courses'%}" class="primary-btn btn-lg text-uppercase">Courses</a>
+            </div>
+        </div>
+        </div>
+
+    </div>
+    </section>
+    <!-- End Hero -->
+
+    <main id="main">
+
+        <!-- ======= About Section ======= -->
+        <section id="about" class="about">
+        <div class="container" data-aos="fade-up">
+
+            <div class="text-center mb-5">
+            <h2 style="color:#00004d;"><b>OUR INSTRUCTOR</b></h2>
+            </div>
+
+            <div class="row">
+            <div class="col-lg-6 order-1 order-lg-2" data-aos="fade-left" data-aos-delay="100">
+                <img src="{%static 'img/team/sanjeevLNCT.png'%}" class="img-fluid" alt="sanjeev sharma image" width='450' height='350' loading="lazy">
+            </div>
+            <div class="col-lg-6 pt-4 pt-lg-0 order-2 order-lg-1 content" data-aos="fade-right" data-aos-delay="100">
+                <div class="row m-2 text-center">
+                    <a href="https://www.linkedin.com/in/sanjeevsharmaiitr/" target="_blank">
+                        <h2 class="or" style="color:#007bff">Sanjeev Sharma</h2>
+                    </a>
+                </div>
+                <ul>
+                <li><i class="ri-check-double-line"></i><h5> He has been researching in motion planning, decision making under uncertainty and autonomous navigation since 2009.</h5></li>
+                <li><i class="ri-check-double-line"></i><h5> Over the past four years his research spanned across several areas of autonomous driving, including deep learning, computer vision, SLAM and visual odometry.</h5></li>
+                <li><i class="ri-check-double-line"></i><h5> He is a recepient of 51 Most Impact Global Smart Leaders Award, in 2019. He is also a recepient of Top 40 Under 40 Data Scientist in India in 2019 award.</h5></li>
+                <li><i class="ri-check-double-line"></i><h5> His research at Swaayatt Robots, to enable autonomous driving on Indian roads, has been covered by both the national and international media, on several occasions.</h5></li>
+                </ul>
+            </div>
+            </div>
+
+        </div>
+        </section>
+        <!-- End About Section -->
+
+        <!-- ======= vision Section ======= -->
+        <section id="vision" class="vision">
+            <div class="container" data-aos="fade-up">
+
+                <div class="col-lg-12 pt-4 pt-lg-0 order-2 order-lg-1 content text-center" data-aos="fade-right" data-aos-delay="100">
+                <h2 style="color:#00004d;"><b>OUR VISION</b></h2>
+                <br>
+                </div>
+
+                <div class="row">
+                <div class="col-lg-4"></div>
+                <div class="col-lg-6 pt-2 pt-lg-0 order-2 order-lg-1 content" data-aos="fade-right" data-aos-delay="100">
+                    <ul>
+                    <li><i class="ri-check-double-line pb-3"></i><h4>Educate a billion people</h4></li>
+                    <br>
+                    <li><i class="ri-check-double-line pb-3"></i><h4>Provide highest quality of knowledge through our courses</h4></li>
+                    <br>
+                    <li><i class="ri-check-double-line"></i><h4>Make cutting-edge education affordable and available to everyone</h4></li>
+                    </ul>
+                </div>
+                </div>
+
+            </div>
+        </section>
+        <!-- End vision Section -->
+
+        <!-- Media Coverage start-->
+        <section id="faqs" class="faqs">
+            <div class='text-center mb-5'>
+              <h2 style="color:#00004d;"><b>Media Coverage</b></h2>
+          </div>
+          <div class="row">
+            <div class="col-lg-2">
+            </div>
+            <div class="col-lg-4">
+              <div class="container pt-4 pb-5 shadow mb-5" data-aos="fade-up">
+                <div class="row">
+                  <div class="col-12 bg-white py-3">
+                    <img class="img-fluid my-3 center" src="https://analyticsdrift.com/wp-content/uploads/2020/09/272x90.png">
+                    <h3 class="text-center">Online Education Startup Deep Eigen Raises Funding to Offer Advanced Courses</h3><br>
+                    
+                    <h5 style="padding: 15px;">Deep Eigen, an online education platform that focuses on offering graduate-level courses related to engineering, science, and mathematics (including, but not limited to, robotics, AI, and autonomous driving),
+                      raises $250,000 from a US-based investor at a valuation of over $5.75 million...
+                      <a style="color:#007bff;" href="https://analyticsdrift.com/online-education-startup-deep-eigen-raises-seed-funding-to-offer-advanced-courses/?utm_content=bufferce435&utm_medium=social&utm_source=linkedin.com&utm_campaign=buffer" target="_blank">view more</a>
+                    </h5>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4">
+              <div class="container pt-4 pb-5 shadow mb-5" data-aos="fade-up">
+                <div class="row">
+                  <div class="col-12 bg-white py-3">
+                    <img class="img-fluid my-3 center-aim" src="{%static 'img/AIM-Logo.webp'%}">
+                    <div style="margin-top: 10px;"></div>
+                    <h3 class="text-center">Bhopal-Based Online Education Startup Deep Eigen Raises $250,000 Funding</h3><br>
+                    <h5 style="padding: 15px;">Deep Eigen was previously an internal education system at Swaayatt Robots. Its purpose was to let the team acquire the knowledge to be able to do cutting-edge 
+                      research and keep up with the state-of-the-art in respective fields This is the same spirit in which the founder is running Deep Eigen today....
+                      <a style="color:#007bff;" href="https://analyticsindiamag.com/bhopal-based-online-education-startup-deep-eigen-raises-250000/" target="_blank">view more</a>
+                    </h5>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-2">
+            </div>
+          </div>
+          
+          </section>
+        <!-- Media coverage End -->
+
+        <!-- faqs section -->
+        <section id="faqs" class="faqs">
+        <div class='text-center mb-5'>
+            <h2 style="color:#00004d;"><b>Frequently Asked Questions</b></h2>
+        </div>
+        <div class="container pt-4 pb-5 shadow mb-5" data-aos="fade-up">
+            <div class="accordion accordion-flush" id="accordionFlushExample">
+    
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="flush-headingOne">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                    What are you going to learn?
+                </button>
+                </h2>
+                <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+                <div class="accordion-body">
+                    <p>
+                    Deep Eigen offers courses in two primary categories: (i) Category-I (Cat-I), and (ii) Category-II (Cat-II). Cat-I is further subdivided into Cat-IA and Cat-IB. </p>
+                    <p>The primary categories divide courses into two broad segments: (i) deeply theoretical and practical, and (ii) broad and practical, with deep theory wherever required. 
+                    </p>
+                    <p>(i) The deep theoretical courses are designed to cover theoretical concepts of the particular topic, with mathematical derivations wherever applicable. The assignments are designed to train you to implement theoretical concepts presented in the lectures, with relevance to the 21st century real-world industrial problems. Such courses are Cat-I courses.
+                    </p>
+                    <p>
+                    (ii) The broad practical, with deep enough required theory, courses mostly focus on the practical applications of a particular theoretical concept, and the emphasis is on learning to apply those concepts rather than deep theoretical analysis. Such courses are Cat-II courses.
+                    </p>
+                </div>
+                </div>
+            </div>
+    
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="flush-headingTwo">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                    How do courses marked "Cat-I" compare with top graduate programs?
+                </button>
+                </h2>
+                <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo" data-bs-parent="#accordionFlushExample">
+                <div class="accordion-body">
+                    <p>
+                    Courses at top graduate programs provide you the state-of-the-art knowledge in the field. However, graudate programs are very selective and expensive. Furthermore, they assume that you already have lot of background knowledge before you begin a course. 
+                    </p>
+                    <p>
+                    The Cat-I courses at Deep Eigen also provide you the state-of-the-art knowledge, combining information from text-books and research papers. However, our courses try to teach concepts from scratch, covering most of the required background knowledge. We assume that the audience has little background knowledge of the particular field, and thus the primary lectures combined with secondary TA lectures provide you a holistic course which is easy to follow and understand. The programming assignments on the other hand ensure that you know how every concept is applied to solve a real-world problem.
+                    </p>
+                    <p>
+                    The courses are detailed and deep enough, and after thoroughly completing a course, along with all the mandatory and optional assignments, you may be in a position to compare yourself with (i) graduate students of top universities in the world, and (ii) leading industry experts in the field. 
+                    </p>
+                </div>
+                </div>
+            </div>
+    
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="flush-headingThree">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+                    What are other options?
+                </button>
+                </h2>
+                <div id="flush-collapseThree" class="accordion-collapse collapse" aria-labelledby="flush-headingThree" data-bs-parent="#accordionFlushExample">
+                <div class="accordion-body">
+                    <p>
+                    Deep Eigen courses are typically more deeper and broader than other online courses. Our courses are designed to provide both the depth and breadth of a particular topic. Such knowledge base may help a candidate in securing a job in the relevant areas.</p> 
+                    <p>For example, while Cat-I courses specifically are designed to be as knowledgeable and as competitive as best of the best graduate programs' courses, the Cat-II courses do not necessarily contain graudate level theory. However, often this boundary is blurred in Cat-II courses. Often, there are more hidden topics and other added topics, as compared to those indicated in the course outline -- this depends on a course instructor, if they want to include additional topics (other than those mentioned in a course-outline) to provide a more holistic experience to the registrants. 
+                    </p>
+                    <p>
+                    There are rarely any alternative to the Cat-I courses offered by Deep Eigen, as they aim to provide you state-of-the-art knowledge. We consider that the only real alternative to Deep Eigen's Cat-I courses is a structured graduate program in a developed country. Graudate programs can provide you equivalent (or better) knowledge in the fielld. However, not everyone can get into such graduate programs, and not everyone can afford them, given that the fee is increasing every year.
+                    </p>
+                    <p>
+                    The other alternative, for masses, is to enroll in courses by other online platforms. Some such platforms have already trained thousands of students and professionals. However, the knowledge provided by such platforms is very basic, and is good enough only when you want to get a limited knowledge of a particular field. Sometimes these courses can be very demanding in terms of fees, which is not justified (in our opinion) given the content.
+                    </p>
+                </div>
+                </div>
+            </div>
+    
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="flush-headingFour">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseFour" aria-expanded="false" aria-controls="flush-collapseFour">
+                    What are prerequisites?
+                </button>
+                </h2>
+                <div id="flush-collapseFour" class="accordion-collapse collapse" aria-labelledby="flush-headingFour" data-bs-parent="#accordionFlushExample">
+                <div class="accordion-body">
+                    <p>The lectures are provided in such a fashion that anyone with a basic knowledge of linear algebra and multivariate calculus can take a course, and follow the entire course, including the mathematical derivations (if they are part of a course outline). Any other prerequisites are specifically mentioned on a course page. 
+                </div>
+                </div>
+            </div>
+    
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="flush-headingFive">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseFive" aria-expanded="false" aria-controls="flush-collapseFive">
+                    What are the objectives of Cat-IA, IB and II courses?
+                </button>
+                </h2>
+                <div id="flush-collapseFive" class="accordion-collapse collapse" aria-labelledby="flush-headingFive" data-bs-parent="#accordionFlushExample">
+                <div class="accordion-body">
+                    <p> To informally define these categories:</p>
+                    <p> Cat-IA courses can be considered as one semester course on the same topic at top graudate programs in the world, with additional emphasis on research papers.</p>
+                    <p> Cat-IB courses are equivalent to a one semester course on the same topic at top graduate programs in the world. </p>
+                    <p> Cat-II courses are very broad (they are a combination of several courses into one) and practical in nature. The theoretical depth of some of the topics may be as that of a graduate program course, but often such courses tend to be less intensive on theory. Any deep additional theoretical concept (other than the course outline, or on a topic mentioned in the outline) may be added if an instructor would like to do so. </p>
+                    <p>When Cat-I courses are designed to be an advanced undergraduate level course, the course page will specifically indicate that. 
+                </div>
+                </div>
+            </div>
+    
+            </div>
+        </div>
+        </section>
+        <!-- End faqs Section -->
+        
+
+    </main>
+  <!-- End #main -->
+  <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org/",
+        "@type": "WebPage",
+        "name": "Deep Eigen",
+        "url": "https://www.deepeigen.com/",
+        "description": "{{description}}"
+      }
+    ]
+  </script>
+{% endblock %}

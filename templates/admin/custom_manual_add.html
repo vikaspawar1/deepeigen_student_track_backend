@@ -1,0 +1,10 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+    <h2>Create a new user</h2>
+    <form method="post">{% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="button">Save</button>
+    </form>
+    <a href="{% url 'admin:course_enrolleduser_changelist' %}">Back to admin</a>
+{% endblock %}

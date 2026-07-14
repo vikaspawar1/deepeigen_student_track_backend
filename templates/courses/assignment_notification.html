@@ -1,0 +1,31 @@
+{% autoescape off %}
+
+{% if manual_submit  %}
+Hi,
+
+The {{user_email}} has submitted the {{assignment_name}} of {{course_title}}.
+
+Please find the atachment below and evaluate the assignment immediately
+
+{% elif auto_evaluate  %}
+
+
+Hi,
+
+The auto-evaluation of assignment {{assignment_name}} of {{course_title}} is completed.
+
+Submit user: {{user_email}}
+
+Evaluation Score: {{score}}
+
+{% else %}
+
+Hi,
+
+The {{user_email}} has submitted the {{assignment_name}} of {{course_title}}.
+
+Please download the assignment immediately from the admin screen.
+
+{% endif %}
+
+{% endautoescape %}
