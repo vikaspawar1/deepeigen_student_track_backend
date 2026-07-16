@@ -198,6 +198,25 @@ class Assignment(models.Model):
     def __str__(self):
         return f'{self.name} -> {self.module}'
 
+class Assessment(models.Model):
+    """!
+    @brief Model representing a graded assessment (quiz/test) within a course.
+    @details Admin creates assessments per course. Students attempt them and
+             admin gives points. Used to calculate per-course assessment average.
+    """
+    name = models.CharField(max_length=255)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='assessments')
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, null=True, blank=True, related_name='assessments')
+    max_score = models.FloatField(default=100.0, help_text="Maximum score admin can give (default 100)")
+    created_date = models.DateTimeField(default=datetime.now, blank=True)
+
+    def __str__(self):
+        return f'{self.name} -> {self.course}'
+
+    class Meta:
+        ordering = ['id']
+
+
 class Video(models.Model):
     """!
     @brief Model representing a lecture video hosted on the platform.

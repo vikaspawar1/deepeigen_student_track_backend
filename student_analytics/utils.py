@@ -19,9 +19,10 @@ sent to the frontend – they are internal to the scoring logic.
 """
 from datetime import timedelta
 
+from django.db.models import Sum
 from django.utils import timezone
 
-from course.models import AssignmentEvaluation, EnrolledUser, OverallProgress, UserVideoProgress
+from course.models import Assignment, AssignmentEvaluation, EnrolledUser, OverallProgress, UserVideoProgress
 from .models import AssignmentActivity, LectureActivity, StudentAnalytics, StudentCourseAnalytics
 
 
@@ -61,6 +62,42 @@ def _clamp(value: float, lower: float, upper: float) -> float:
     return max(lower, min(upper, value))
 
 
+def build_assignment_analytics_summary(
+    *,
+    total_assignments,
+    submitted_assignments,
+    reviewed_assignments,
+    reviewed_marks_total,
+    started_courses_count,
+    purchased_courses_count,
+):
+    total_assignments = int(total_assignments or 0)
+    submitted_assignments = int(submitted_assignments or 0)
+    reviewed_assignments = int(reviewed_assignments or 0)
+    reviewed_marks_total = float(reviewed_marks_total or 0.0)
+
+    pending_review_assignments = max(0, submitted_assignments - reviewed_assignments)
+    assignment_progress_percentage = round(
+        (submitted_assignments / total_assignments) * 100.0,
+        1,
+    ) if total_assignments else 0.0
+    assignment_average_performance = round(
+        (reviewed_marks_total / (reviewed_assignments * 100.0)) * 100.0,
+        1,
+    ) if reviewed_assignments else 0.0
+
+    return {
+        "total_assignments": total_assignments,
+        "assignments_submitted": submitted_assignments,
+        "assignments_reviewed": reviewed_assignments,
+        "assignments_pending_review": pending_review_assignments,
+        "assignment_progress_percentage": assignment_progress_percentage,
+        "assignment_average_performance": assignment_average_performance,
+        "started_courses": int(started_courses_count or 0),
+        "purchased_courses": int(purchased_courses_count or 0),
+    }
+
+
 def build_student_overview_summary(
     analytics,
     *,
@@ -71,11 +108,21 @@ def build_student_overview_summary(
     total_lectures_completed,
     total_modules_completed,
     lecture_completion_percent=None,
+    total_assignments=None,
+    assignment_progress_percentage=None,
+    assignment_average_performance=None,
 ):
     # ── Assignment Performance: 0–500 pts ──────────────────────────────────
     assignment_average = float(getattr(analytics, 'average_assignment_score', 0.0) or 0.0)
+    assignment_progress = float(assignment_progress_percentage or 0.0)
+    assignment_quality = float(assignment_average_performance or assignment_average or 0.0)
+
+    # Combined logic:                                                                                                                                                                                                                                                                                                                                                                                               
+    assignment_progress_points = (assignment_progress / 100.0) * 250.0
+    assignment_quality_points = (assignment_quality / 100.0) * 250.0
     assignment_performance_points = round(
-        min(500.0, max(0.0, (assignment_average / 100.0) * 500.0)), 1
+        min(500.0, max(0.0, assignment_progress_points + assignment_quality_points)),
+        1,
     )
 
     # ── Lecture Completion: 0–350 pts ───────────────────────────────────────
@@ -95,7 +142,7 @@ def build_student_overview_summary(
     else:
         consistency_points = round(max(0.0, streak * 8.0), 1)
 
-    # ── Overall Score: sum clamped to 1000 ─────────────────────────────────
+    # ── Overall Score: calculate from current Assignment/Lecture/Consistency points
     overall_score = round(
         _clamp(
             assignment_performance_points + lecture_completion_points + consistency_points,
@@ -107,7 +154,13 @@ def build_student_overview_summary(
 
     # Keep overall_completion for display purposes (courses completed %)
     total_purchased = int(total_courses_purchased or 0)
-    overall_completion = round(lecture_completion_percent, 1) if lecture_completion_percent is not None else 0.0
+    completed_courses = int(getattr(analytics, 'total_courses_completed', 0) or 0)
+    if lecture_completion_percent is not None:
+        overall_completion = round(lecture_completion_percent, 1)
+    elif total_purchased:
+        overall_completion = round((completed_courses / total_purchased) * 100.0, 1)
+    else:
+        overall_completion = 0.0
 
     return {
         'overall_completion': overall_completion,
@@ -160,6 +213,63 @@ def build_student_overview_summary(
 
 
 
+
+
+def get_started_course_assignment_analytics(user):
+    """Aggregate assignment counts and marks across all started courses only."""
+    started_course_ids = set(
+        StudentCourseAnalytics.objects.filter(
+            user=user,
+            course_status__in=['In Progress', 'Completed'],
+        ).values_list('course_id', flat=True)
+    )
+
+    enrolled_course_ids = set(
+        EnrolledUser.objects.filter(user=user, enrolled=True).values_list('course_id', flat=True)
+    )
+
+    if enrolled_course_ids:
+        started_from_activity = set(
+            AssignmentEvaluation.objects.filter(
+                user=user,
+                course_id__in=enrolled_course_ids,
+                submit_flag=True,
+            ).values_list('course_id', flat=True)
+        )
+        started_from_activity |= set(
+            OverallProgress.objects.filter(
+                user=user,
+                course_id__in=enrolled_course_ids,
+                progress__gt=0,
+            ).values_list('course_id', flat=True)
+        )
+        started_course_ids |= started_from_activity
+
+    started_course_ids = sorted(started_course_ids)
+
+    total_assignments = Assignment.objects.filter(course_id__in=started_course_ids).count() if started_course_ids else 0
+
+    submitted_evals = AssignmentEvaluation.objects.filter(
+        user=user,
+        course_id__in=started_course_ids,
+        submit_flag=True,
+    )
+    submitted_assignments = submitted_evals.count() if started_course_ids else 0
+
+    reviewed_evals = submitted_evals.filter(score__gt=0)
+    reviewed_assignments = reviewed_evals.count() if started_course_ids else 0
+    reviewed_marks_total = float(
+        reviewed_evals.aggregate(total=Sum('score'))['total'] or 0.0
+    )
+
+    return build_assignment_analytics_summary(
+        total_assignments=total_assignments,
+        submitted_assignments=submitted_assignments,
+        reviewed_assignments=reviewed_assignments,
+        reviewed_marks_total=reviewed_marks_total,
+        started_courses_count=len(started_course_ids),
+        purchased_courses_count=len(enrolled_course_ids),
+    )
 
 
 def sync_user_analytics(user):

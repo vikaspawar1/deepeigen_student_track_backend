@@ -17,7 +17,7 @@ from .serializers import (
     StudentAnalyticsSerializer,
     StudentCourseAnalyticsSerializer,
 )
-from .utils import build_student_overview_summary
+from .utils import build_student_overview_summary, get_started_course_assignment_analytics
 
 
 class OverviewAPIView(APIView):
@@ -75,16 +75,10 @@ class PerformanceAPIView(APIView):
 
         from course.models import AssignmentEvaluation
 
-        assignments_submitted = AssignmentEvaluation.objects.filter(
-            user=request.user,
-            submit_flag=True,
-        ).count()
-        admin_reviewed_count = AssignmentEvaluation.objects.filter(
-            user=request.user,
-            submit_flag=True,
-            score__gt=0,
-        ).count()
-        pending_review_count = max(0, assignments_submitted - admin_reviewed_count)
+        started_course_assignment_analytics = get_started_course_assignment_analytics(request.user)
+        assignments_submitted = started_course_assignment_analytics['assignments_submitted']
+        admin_reviewed_count = started_course_assignment_analytics['assignments_reviewed']
+        pending_review_count = started_course_assignment_analytics['assignments_pending_review']
 
         # Recompute engagement from actual daily activity records so admin updates show immediately
         total_study_minutes = DailyLearningActivity.objects.filter(user=request.user).aggregate(
@@ -209,7 +203,12 @@ class PerformanceAPIView(APIView):
             total_lectures_completed=analytics.total_lectures_completed,
             total_modules_completed=analytics.total_modules_completed,
             lecture_completion_percent=avg_lecture_percent,
+            total_assignments=started_course_assignment_analytics['total_assignments'],
+            assignment_progress_percentage=started_course_assignment_analytics['assignment_progress_percentage'],
+            assignment_average_performance=started_course_assignment_analytics['assignment_average_performance'],
         )
+        summary.update(started_course_assignment_analytics)
+        summary['assignment_average'] = started_course_assignment_analytics['assignment_average_performance']
 
         summary['purchased_courses'] = purchased_courses
         summary['purchased_courses_completed'] = purchased_courses_completed
@@ -292,6 +291,7 @@ class PerformanceAPIView(APIView):
             f"Avg Assignment Score: {round(summary['assignment_average'], 1)}%",
             f"Courses Completed: {summary['completed_courses']}/{summary['total_courses_purchased']}",
             f"Lectures Completed: {summary['lectures_completed']}",
+            f"Assignment Progress: {summary['assignment_progress_percentage']}%",
         ]
         if summary['assignment_average'] >= 80:
             insights.append('Excellent Assignment Performance')

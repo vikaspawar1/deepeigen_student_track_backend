@@ -107,4 +107,5 @@ urlpatterns = [
     path('customplaylist/', include('customplaylist.urls')),
     path('subscriptions/', include('subscriptions.urls')),
     path('student-analytics/', include('student_analytics.urls')),
+    path('api/chatbot/', include('chatbot.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

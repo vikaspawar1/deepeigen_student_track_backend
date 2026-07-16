@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     'customplaylist',
     'subscriptions',
     'student_analytics',
+    'chatbot',
 ]
 
 MIDDLEWARE = [

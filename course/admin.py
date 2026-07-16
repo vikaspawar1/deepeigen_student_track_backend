@@ -586,6 +586,19 @@ class AssignmentAdmin(admin.ModelAdmin):
     list_filter = [CourseFilter]
 
 
+@admin.register(Assessment)
+class AssessmentAdmin(admin.ModelAdmin):
+    """
+    Admin interface for managing Assessments per course.
+    Admin can create assessments and later give scores to students via AssessmentActivity.
+    """
+    list_display = ('name', 'course', 'module', 'max_score', 'created_date')
+    search_fields = ('name', 'course__title')
+    list_filter = ('course',)
+    ordering = ('course', 'id')
+
+
+
 # ======================== Old code of VideoAdmin (DATE - 13_Jan_2025) ===============================
 
 # class VideoAdmin(admin.ModelAdmin):
