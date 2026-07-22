@@ -1,447 +1,171 @@
 """
-signals.py – Student Analytics Signal Handlers
-Tracks: video completions, course progress, assignment submissions/evaluations.
-Does NOT modify any existing course models.
+signals.py — Signal handlers for student_analytics
+
+Automatically syncs analytics tables when raw course data changes:
+  - UserVideoProgress saved → LectureActivity + StudentCourseAnalytics updated
+  - AssignmentEvaluation saved → AssignmentActivity + StudentCourseAnalytics updated
 """
+import logging
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from course.models import UserVideoProgress, OverallProgress, AssignmentEvaluation, EnrolledUser
-from .models import (
-    StudentAnalytics, StudentCourseAnalytics, LectureActivity,
-    AssignmentActivity, DailyLearningActivity
-)
+logger = logging.getLogger(__name__)
 
 
-def get_or_create_analytics(user):
-    analytics, _ = StudentAnalytics.objects.get_or_create(user=user)
-    return analytics
-
-
-def update_internship_eligibility(analytics):
+@receiver(post_save, sender='course.UserVideoProgress')
+def on_video_progress_saved(sender, instance, created, **kwargs):
     """
-    Internship eligibility requires:
-      - Performance score >= 900
-      - Average assignment score >= 80
-      - At least 1 course completed
+    When a UserVideoProgress record is saved (video completed),
+    create/update the corresponding LectureActivity and refresh
+    the StudentCourseAnalytics lecture counts.
     """
-    if (
-        analytics.overall_performance_score >= 900
-        and analytics.average_assignment_score >= 80
-        and analytics.total_courses_completed >= 1
-    ):
-        analytics.internship_eligible = True
-    else:
-        analytics.internship_eligible = False
-    analytics.save()
-
-
-def record_daily_learning_activity(user, is_lecture=False, is_assignment=False, study_minutes=0):
-    from datetime import date
-    daily, _ = DailyLearningActivity.objects.get_or_create(
-        user=user, date=date.today()
-    )
-    daily.study_time += study_minutes
-    if is_lecture:
-        daily.lectures_completed += 1
-    if is_assignment:
-        daily.assignments_submitted += 1
-    daily.save()
-
-
-def _sync_course_analytics_to_global(analytics, course_analytics):
-    """Recompute global totals from all per-course records."""
-    from django.db.models import Sum, Avg, Count
-    all_ca = StudentCourseAnalytics.objects.filter(user=analytics.user)
-    analytics.total_lectures_completed = all_ca.aggregate(s=Sum('completed_lectures'))['s'] or 0
-    analytics.total_assignments_completed = all_ca.aggregate(s=Sum('completed_assignments'))['s'] or 0
-    analytics.total_modules_completed = all_ca.aggregate(s=Sum('completed_modules'))['s'] or 0
-    analytics.total_courses_completed = all_ca.filter(course_status='Completed').count()
-    analytics.total_courses_purchased = StudentCourseAnalytics.objects.filter(user=analytics.user).count()
-    analytics.save()
-
-
-# ─────────────────────────────────────────────
-# 1. Video / Lecture Completion
-# ─────────────────────────────────────────────
-@receiver(post_save, sender=UserVideoProgress)
-def track_video_completion(sender, instance, created, **kwargs):
-    if not instance.completed:
-        return
-
-    activity, act_created = LectureActivity.objects.get_or_create(
-        user=instance.user,
-        course=instance.course,
-        lecture=instance.video,
-        defaults={'is_completed': True, 'completed_at': timezone.now()}
-    )
-
-    if act_created:
-        analytics = get_or_create_analytics(instance.user)
-
-        course_analytics, _ = StudentCourseAnalytics.objects.get_or_create(
-            user=instance.user,
-            course=instance.course
-        )
-        course_analytics.completed_lectures += 1
-        course_analytics.course_performance_score += 2
-        
-        # Populate dates if missing
-        if not course_analytics.purchase_date:
-            enrolled = EnrolledUser.objects.filter(user=instance.user, course=instance.course, enrolled=True).first()
-            access_start_date = None
-            duration_months = getattr(instance.course, 'duration', 0) or 6
-            if enrolled:
-                access_start_date = enrolled.created_at
-            else:
-                from subscriptions.models import UserSubscription, PlanCategoryAccess
-                active_subscriptions = UserSubscription.objects.filter(user=instance.user, is_active=True).order_by('start_date')
-                for sub in active_subscriptions:
-                    categories = PlanCategoryAccess.objects.filter(plan_type=sub.plan.plan_type).values_list("category", flat=True)
-                    if instance.course.category in categories and instance.course.is_featured:
-                        access_start_date = sub.start_date
-                        break
-                        
-            if access_start_date:
-                from datetime import timedelta
-                course_analytics.purchase_date = access_start_date
-                course_analytics.access_start_date = access_start_date
-                course_analytics.expected_course_duration = duration_months * 30
-                course_analytics.expected_completion_date = access_start_date + timedelta(days=duration_months * 30)
-
-        course_analytics.save()
-
-        analytics.overall_performance_score += 2
-        analytics.total_lectures_completed += 1
-        analytics.total_courses_purchased = StudentCourseAnalytics.objects.filter(user=instance.user).count()
-        update_internship_eligibility(analytics)
-        
-        # Track daily learning activity (Lecture +1)
-        record_daily_learning_activity(instance.user, is_lecture=True, study_minutes=15)
-
-
-# ─────────────────────────────────────────────
-# 2. Course Completion (OverallProgress hits 100)
-# ─────────────────────────────────────────────
-@receiver(post_save, sender=OverallProgress)
-def track_course_progress(sender, instance, **kwargs):
-    course_analytics, _ = StudentCourseAnalytics.objects.get_or_create(
-        user=instance.user,
-        course=instance.course
-    )
-    course_analytics.completion_percentage = float(instance.progress)
-
-    # Populate dates if missing
-    if not course_analytics.purchase_date:
-        enrolled = EnrolledUser.objects.filter(user=instance.user, course=instance.course, enrolled=True).first()
-        access_start_date = None
-        duration_months = getattr(instance.course, 'duration', 0) or 6
-        if enrolled:
-            access_start_date = enrolled.created_at
-        else:
-            from subscriptions.models import UserSubscription, PlanCategoryAccess
-            active_subscriptions = UserSubscription.objects.filter(user=instance.user, is_active=True).order_by('start_date')
-            for sub in active_subscriptions:
-                categories = PlanCategoryAccess.objects.filter(plan_type=sub.plan.plan_type).values_list("category", flat=True)
-                if instance.course.category in categories and instance.course.is_featured:
-                    access_start_date = sub.start_date
-                    break
-                    
-        if access_start_date:
-            from datetime import timedelta
-            course_analytics.purchase_date = access_start_date
-            course_analytics.access_start_date = access_start_date
-            course_analytics.expected_course_duration = duration_months * 30
-            course_analytics.expected_completion_date = access_start_date + timedelta(days=duration_months * 30)
-
-    if float(instance.progress) >= 100 and course_analytics.course_status != 'Completed':
-        course_analytics.course_status = 'Completed'
-        course_analytics.actual_completion_date = timezone.now()
-        course_analytics.course_performance_score += 150
-        course_analytics.save()
-
-        analytics = get_or_create_analytics(instance.user)
-        analytics.overall_performance_score += 150
-        analytics.total_courses_completed += 1
-        analytics.total_courses_purchased = StudentCourseAnalytics.objects.filter(user=instance.user).count()
-        update_internship_eligibility(analytics)
-    elif float(instance.progress) > 0 and course_analytics.course_status == 'Not Started':
-        course_analytics.course_status = 'In Progress'
-        course_analytics.save()
-    else:
-        course_analytics.save()
-
-
-
-
-
-# ─────────────────────────────────────────────
-# 3. Assignment Evaluation (Admin reviews / grades)
-# ─────────────────────────────────────────────
-@receiver(post_save, sender=AssignmentEvaluation)
-def track_assignment_evaluation(sender, instance, created, **kwargs):
-    if not instance.submit_flag:
-        return
-        
-    score_float = float(instance.score)
-
-    # Track daily learning activity (Assignment +1)
-    # Only track if this is a newly submitted/created evaluation (not just a score update)
-    if created or instance.score == 0:
-        record_daily_learning_activity(instance.user, is_assignment=True, study_minutes=30)
-
-
-    # Determine early-submission bonus
-    early_bonus = 0
     try:
-        enrolled = EnrolledUser.objects.filter(
-            user=instance.user,
-            course=instance.course,
-            enrolled=True
-        ).order_by('created_at').first()
+        from .models import LectureActivity, StudentCourseAnalytics, StudentAnalytics
+        from course.models import Video
 
-        access_start_date = None
-        if enrolled:
-            access_start_date = enrolled.created_at
-        else:
-            from subscriptions.models import UserSubscription, PlanCategoryAccess
-            active_subscriptions = UserSubscription.objects.filter(
-                user=instance.user, is_active=True
-            ).order_by('start_date')
-            
-            for sub in active_subscriptions:
-                categories = PlanCategoryAccess.objects.filter(plan_type=sub.plan.plan_type).values_list("category", flat=True)
-                if instance.course.category in categories and instance.course.is_featured:
-                    access_start_date = sub.start_date
-                    break
+        user = instance.user
+        course = instance.course
+        video = instance.video
 
-        if access_start_date:
-            course_duration_months = getattr(instance.course, 'duration', 0) or 6
-            course_duration_days = course_duration_months * 30
-            days_elapsed = (instance.created_at - access_start_date).days if instance.created_at else 0
-            # If submitted in first half of course duration, grant early bonus
-            if days_elapsed < course_duration_days // 2:
-                early_bonus = 20
-            elif days_elapsed < (course_duration_days * 3) // 4:
-                early_bonus = 10
+        if not user or not course or not video:
+            return
+
+        # Create/update LectureActivity
+        if instance.completed:
+            la, la_created = LectureActivity.objects.get_or_create(
+                user=user, course=course, lecture=video,
+                defaults={
+                    "is_completed": True,
+                    "completed_at": timezone.now(),
+                },
+            )
+            if not la_created and not la.is_completed:
+                la.is_completed = True
+                la.completed_at = timezone.now()
+                la.save(update_fields=["is_completed", "completed_at"])
+
+        # Update StudentCourseAnalytics lecture counts
+        from course.models import UserVideoProgress as UVP
+        completed_count = UVP.objects.filter(user=user, course=course, completed=True).count()
+        total_count = Video.objects.filter(module__section__course=course).count()
+
+        sca, _ = StudentCourseAnalytics.objects.get_or_create(user=user, course=course)
+        sca.completed_lectures = completed_count
+        sca.total_lectures = total_count
+        sca.last_activity_at = timezone.now()
+
+        # Update course status based on progress
+        if completed_count > 0 and sca.course_status == "Not Started":
+            sca.course_status = "In Progress"
+
+        sca.save(update_fields=[
+            "completed_lectures", "total_lectures", "last_activity_at", "course_status",
+        ])
+
+        # Update global StudentAnalytics lecture count
+        total_lectures_all = sum(
+            s.completed_lectures for s in StudentCourseAnalytics.objects.filter(user=user)
+        )
+        sa, _ = StudentAnalytics.objects.get_or_create(user=user)
+        sa.total_lectures_completed = total_lectures_all
+        sa.save(update_fields=["total_lectures_completed"])
+
+        logger.info(
+            f"[SIGNAL] on_video_progress_saved: user={user.id} course={course.id} "
+            f"video={video.id} completed={instance.completed} lectures={completed_count}/{total_count}"
+        )
+
     except Exception:
-        early_bonus = 0
-
-    # Score-based bonus
-    score_bonus = 0
-    if score_float >= 95:
-        score_bonus = 60
-    elif score_float >= 85:
-        score_bonus = 50
-    elif score_float >= 75:
-        score_bonus = 40
-    elif score_float >= 60:
-        score_bonus = 30
-    else:
-        score_bonus = 10
-
-    total_bonus = score_bonus + early_bonus
-
-    # Update or create AssignmentActivity
-    activity, act_created = AssignmentActivity.objects.get_or_create(
-        user=instance.user,
-        course=instance.course,
-        assignment=instance.assignment,
-        defaults={
-            'marks': score_float,
-            'status': 'Admin Reviewed',
-            'assignment_submission_time': instance.created_at,
-            'admin_review_time': timezone.now(),
-        }
-    )
-
-    if not act_created:
-        activity.marks = score_float
-        activity.status = 'Admin Reviewed'
-        activity.admin_review_time = timezone.now()
-        if not activity.assignment_submission_time and instance.created_at:
-            activity.assignment_submission_time = instance.created_at
-        activity.save()
-
-    analytics = get_or_create_analytics(instance.user)
-
-    # Recalculate running average
-    completed = analytics.total_assignments_completed
-    if act_created:
-        new_total = completed + 1
-        analytics.average_assignment_score = (
-            (analytics.average_assignment_score * completed) + score_float
-        ) / new_total
-        analytics.total_assignments_completed = new_total
-        analytics.overall_performance_score += total_bonus
-    else:
-        # Re-average: treat as update (just add bonus if not already added)
-        if completed > 0:
-            analytics.average_assignment_score = (
-                (analytics.average_assignment_score * completed) + score_float
-            ) / (completed + 1)
-
-    # Update course analytics
-    course_analytics, _ = StudentCourseAnalytics.objects.get_or_create(
-        user=instance.user,
-        course=instance.course
-    )
-    if act_created:
-        course_analytics.completed_assignments += 1
-    course_analytics.assignment_average = analytics.average_assignment_score
-    course_analytics.course_performance_score += total_bonus
-    course_analytics.save()
-
-    update_internship_eligibility(analytics)
+        logger.exception("[SIGNAL] on_video_progress_saved failed")
 
 
+@receiver(post_save, sender='course.AssignmentEvaluation')
+def on_assignment_evaluation_saved(sender, instance, created, **kwargs):
+    """
+    When an AssignmentEvaluation is saved (submission or review),
+    create/update the AssignmentActivity and refresh
+    the StudentCourseAnalytics assignment counts.
+    """
+    try:
+        from .models import AssignmentActivity, StudentCourseAnalytics, StudentAnalytics
+        from course.models import AssignmentEvaluation
 
+        user = instance.user
+        course = instance.course
+        assignment = instance.assignment
 
+        if not user or not course or not assignment:
+            return
 
-# ─────────────────────────────────────────────
-# 4. Enrollment – set purchase_date on course analytics
-# ─────────────────────────────────────────────
-@receiver(post_save, sender=EnrolledUser)
-def track_enrollment(sender, instance, created, **kwargs):
-    if created and instance.enrolled:
-        course_analytics, _ = StudentCourseAnalytics.objects.get_or_create(
-            user=instance.user,
-            course=instance.course
+        score_f = float(instance.score or 0)
+        is_submitted = bool(instance.submit_flag or instance.created_at)
+        is_reviewed = score_f > 0
+
+        status_label = (
+            "Admin Reviewed" if is_reviewed
+            else ("Submitted" if is_submitted else "Pending")
         )
-        if not course_analytics.purchase_date:
-            course_analytics.purchase_date = instance.created_at
-            course_analytics.access_start_date = instance.created_at
-            if instance.course.duration:
-                from datetime import timedelta
-                course_analytics.expected_course_duration = instance.course.duration * 30
-                course_analytics.expected_completion_date = (
-                    instance.created_at + timedelta(days=instance.course.duration * 30)
-                )
-            course_analytics.save()
 
-        analytics = get_or_create_analytics(instance.user)
-        analytics.total_courses_purchased = StudentCourseAnalytics.objects.filter(
-            user=instance.user
-        ).count()
-        analytics.save()
-
-
-
-
-
-# ─────────────────────────────────────────────
-# 5. Daily Learning Activity (Engagement & Consistency)
-# ─────────────────────────────────────────────
-@receiver(post_save, sender=DailyLearningActivity)
-def track_daily_learning(sender, instance, created, **kwargs):
-    """
-    When daily learning activity is recorded, update engagement & consistency metrics.
-    """
-    from datetime import timedelta, date
-    from django.db.models import Sum
-    
-    user = instance.user
-    analytics = get_or_create_analytics(user)
-    
-    # ===== ENGAGEMENT: Total study minutes =====
-    total_mins = DailyLearningActivity.objects.filter(
-        user=user
-    ).aggregate(total=Sum('study_time'))['total'] or 0.0
-    analytics.total_study_minutes = total_mins
-    
-    # ===== CONSISTENCY: Calculate learning streak =====
-    # Start from TODAY and go backwards until we find a gap
-    from django.db.models import Q
-    today = date.today()
-    streak = 0
-    check_date = today
-
-    # Keep checking backwards while records exist
-    while True:
-        has_activity = DailyLearningActivity.objects.filter(
-            Q(user=user, date=check_date) & (Q(study_time__gte=30) | Q(assignments_submitted__gt=0))
-        ).exists()
-
-        if has_activity:
-            streak += 1
-            check_date = check_date - timedelta(days=1)
-        else:
-            break
-
-    # Longest streak can be derived from historical consecutive activity
-    all_dates = list(
-        DailyLearningActivity.objects.filter(
-            Q(user=user) & (Q(study_time__gte=30) | Q(assignments_submitted__gt=0))
+        # Create or update AssignmentActivity
+        aa, aa_created = AssignmentActivity.objects.get_or_create(
+            user=user, course=course, assignment=assignment,
+            defaults={
+                "marks": score_f,
+                "status": status_label,
+                "assignment_submission_time": instance.created_at if is_submitted else None,
+                "admin_review_time": timezone.now() if is_reviewed else None,
+            },
         )
-        .values_list('date', flat=True)
-        .order_by('date')
-    )
-    longest_streak = 0
-    current_run = 0
-    previous_date = None
-    for entry_date in all_dates:
-        if previous_date is None:
-            current_run = 1
-        elif entry_date == previous_date + timedelta(days=1):
-            current_run += 1
+        if not aa_created:
+            aa.marks = score_f
+            aa.status = status_label
+            if not aa.assignment_submission_time and is_submitted:
+                aa.assignment_submission_time = instance.created_at
+            if is_reviewed and not aa.admin_review_time:
+                aa.admin_review_time = timezone.now()
+            aa.save()
+
+        # Update StudentCourseAnalytics assignment counts
+        evals = AssignmentEvaluation.objects.filter(user=user, course=course)
+        submitted_count = evals.filter(submit_flag=True).count()
+        reviewed_count = evals.filter(submit_flag=True, score__gt=0).count()
+
+        sca, _ = StudentCourseAnalytics.objects.get_or_create(user=user, course=course)
+        sca.completed_assignments = submitted_count
+        sca.last_activity_at = timezone.now()
+
+        if submitted_count > 0 and reviewed_count > 0:
+            from django.db.models import Sum
+            total_score = float(
+                evals.filter(submit_flag=True, score__gt=0)
+                .aggregate(total=Sum("score"))["total"] or 0
+            )
+            sca.assignment_average = total_score / reviewed_count
         else:
-            longest_streak = max(longest_streak, current_run)
-            current_run = 1
-        previous_date = entry_date
-    longest_streak = max(longest_streak, current_run)
+            sca.assignment_average = 0.0
 
-    analytics.current_learning_streak = streak
-    analytics.longest_learning_streak = max(analytics.longest_learning_streak or 0, longest_streak)
-    analytics.save()
-    
-    print(f"[Signal] Updated {user.email}: Study={total_mins}min, Streak={streak}d")
+        # Update course status
+        if submitted_count > 0 and sca.course_status == "Not Started":
+            sca.course_status = "In Progress"
 
+        sca.save(update_fields=[
+            "completed_assignments", "assignment_average", "last_activity_at", "course_status",
+        ])
 
-# ─────────────────────────────────────────────
-# 6. Assignment Activity Updates (when admin directly edits marks)
-# ─────────────────────────────────────────────
-@receiver(post_save, sender=AssignmentActivity)
-def track_assignment_activity_update(sender, instance, created, **kwargs):
-    """
-    When assignment activity is saved (including direct admin edits), recalculate assignment average.
-    Light-weight update - only update average_assignment_score.
-    """
-    # Skip if no marks set
-    if instance.marks <= 0:
-        return
-    
-    analytics = get_or_create_analytics(instance.user)
-    
-    # Recalculate average and completed assignment totals from all graded assignments
-    from django.db.models import Avg, Count, Q
-    graded = AssignmentActivity.objects.filter(
-        user=instance.user,
-        marks__gt=0,
-    ).filter(
-        Q(status__iexact='Admin Reviewed') | Q(admin_review_time__isnull=False)
-    ).aggregate(avg=Avg('marks'), count=Count('id'))
-    
-    if graded['count'] and graded['count'] > 0:
-        analytics.average_assignment_score = graded['avg'] or 0.0
-        analytics.total_assignments_completed = graded['count']
-    else:
-        analytics.average_assignment_score = 0.0
-        analytics.total_assignments_completed = 0
-    analytics.save()
+        # Update global StudentAnalytics
+        total_submitted_all = sum(
+            s.completed_assignments for s in StudentCourseAnalytics.objects.filter(user=user)
+        )
+        sa, _ = StudentAnalytics.objects.get_or_create(user=user)
+        sa.total_assignments_completed = total_submitted_all
+        sa.save(update_fields=["total_assignments_completed"])
 
+        logger.info(
+            f"[SIGNAL] on_assignment_evaluation_saved: user={user.id} course={course.id} "
+            f"assignment={assignment.id} submitted={is_submitted} reviewed={is_reviewed} score={score_f}"
+        )
 
-# ─────────────────────────────────────────────
-# 7. Subscription Purchase Tracker
-# ─────────────────────────────────────────────
-@receiver(post_save, sender='subscriptions.UserSubscription')
-def track_subscription(sender, instance, created, **kwargs):
-    """
-    When a UserSubscription is created or activated, map the allowed featured courses
-    to StudentCourseAnalytics so they appear in the user's dashboard.
-    """
-    if instance.is_active:
-        analytics = get_or_create_analytics(instance.user)
-        # Simply update the courses purchased count based on active tracking
-        analytics.total_courses_purchased = StudentCourseAnalytics.objects.filter(user=instance.user).count()
-        analytics.save()
+    except Exception:
+        logger.exception("[SIGNAL] on_assignment_evaluation_saved failed")

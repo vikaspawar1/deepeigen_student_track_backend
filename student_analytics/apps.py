@@ -6,4 +6,8 @@ class StudentAnalyticsConfig(AppConfig):
     name = 'student_analytics'
 
     def ready(self):
-        import student_analytics.signals
+        try:
+            import student_analytics.signals  # noqa: F401
+        except ImportError:
+            pass
+

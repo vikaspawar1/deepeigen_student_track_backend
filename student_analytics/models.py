@@ -1,6 +1,24 @@
+"""
+models.py — Student Analytics data models (DELS edition, consolidated)
+
+Everything from the original app is kept as-is. The only changes are the
+additive fields/table called for in DELS-Developer-Implementation-Spec.md §2:
+
+    StudentCourseAnalytics gains:
+        last_activity_at, access_source, dels_status, dels_contribution_weight
+
+    New table:
+        DELSSnapshot  — one row per user per day, powers the trend line and
+                         "what changed" tooltip on the dashboard.
+
+All DELS *computation* lives in utils.py, not here — this file only defines
+data shape.
+"""
 from django.db import models
 from django.conf import settings
+
 from course.models import Course, Module, Video, Assignment
+
 
 class StudentAnalytics(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='student_analytics')
@@ -20,6 +38,7 @@ class StudentAnalytics(models.Model):
     total_assignments_completed = models.IntegerField(default=0)
     total_assessments_completed = models.IntegerField(default=0)
     average_course_completion_days = models.FloatField(default=0.0)
+    # DELS value (0-1000), written nightly by `python manage.py compute_dels`
     overall_performance_score = models.FloatField(default=0.0)
     internship_eligible = models.BooleanField(default=False)
     student_rank = models.IntegerField(default=0)
@@ -28,6 +47,7 @@ class StudentAnalytics(models.Model):
 
     def __str__(self):
         return f"{self.user.email} Analytics"
+
 
 class StudentCourseAnalytics(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='course_analytics')
@@ -56,10 +76,25 @@ class StudentCourseAnalytics(models.Model):
     discussion_replies = models.IntegerField(default=0)
     login_days = models.IntegerField(default=0)
     learning_streak = models.IntegerField(default=0)
+    # CCS*10 (0-1000), written by `python manage.py compute_dels`
     course_performance_score = models.FloatField(default=0.0)
+
+    # ── DELS additions (spec §2) ────────────────────────────────────────
+    last_activity_at = models.DateTimeField(null=True, blank=True)
+    access_source = models.CharField(
+        max_length=20, default='purchase',
+        choices=[('purchase', 'Purchase'), ('subscription', 'Subscription')],
+    )
+    dels_status = models.CharField(
+        max_length=20, default='active',
+        choices=[('active', 'Active'), ('completed', 'Completed'),
+                 ('abandoned', 'Abandoned'), ('expired', 'Expired')],
+    )
+    dels_contribution_weight = models.FloatField(default=0.0, help_text="Cached W_i from the last DELS run")
 
     class Meta:
         unique_together = ('user', 'course')
+
 
 class LectureActivity(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -71,16 +106,6 @@ class LectureActivity(models.Model):
     completion_percentage = models.FloatField(default=0.0)
     is_completed = models.BooleanField(default=False)
 
-# class ModuleActivity(models.Model):
-#     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-#     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-#     module = models.ForeignKey(Module, on_delete=models.CASCADE)
-#     started_at = models.DateTimeField(null=True, blank=True)
-#     completed_at = models.DateTimeField(null=True, blank=True)
-#     completion_time = models.FloatField(default=0.0, help_text="Time taken in minutes")
-
-
-    
 
 class AssignmentActivity(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -89,7 +114,10 @@ class AssignmentActivity(models.Model):
     assignment_download_time = models.DateTimeField(null=True, blank=True)
     assignment_submission_time = models.DateTimeField(null=True, blank=True)
     admin_review_time = models.DateTimeField(null=True, blank=True)
-    admin_reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_assignments')
+    admin_reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='reviewed_assignments',
+    )
     marks = models.FloatField(default=0.0, help_text="0-100")
     status = models.CharField(max_length=50, default='Pending')
     feedback = models.TextField(blank=True, null=True)
@@ -98,8 +126,6 @@ class AssignmentActivity(models.Model):
         unique_together = ('user', 'course', 'assignment')
         verbose_name = "Student Assignment Submission"
         verbose_name_plural = "Student Assignment Submissions"
-
-
 
 
 class AssessmentActivity(models.Model):
@@ -111,7 +137,6 @@ class AssessmentActivity(models.Model):
     score = models.FloatField(default=0.0)
     passing_status = models.BooleanField(default=False)
     time_taken = models.FloatField(default=0.0, help_text="Time taken in minutes")
-
 
 
 class DailyLearningActivity(models.Model):
@@ -129,3 +154,20 @@ class DailyLearningActivity(models.Model):
 
     class Meta:
         unique_together = ('user', 'date')
+
+
+class DELSSnapshot(models.Model):
+    """One row per user per day — powers the 90-day trend + 'what changed' tooltip (spec §2)."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='dels_snapshots')
+    date = models.DateField()
+    dels_value = models.FloatField(default=0.0)
+    tier = models.CharField(max_length=20, default='At Risk')
+    breakdown_json = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'date')
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.user_id} — {self.date} — {self.dels_value}"

@@ -74,6 +74,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'deepeigen.middleware.DBRetryMiddleware',   # retry stale RDS connections once
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -143,12 +144,26 @@ AUTH_USER_MODEL = 'accounts.Account'
 
 
 # PostgreSQL from environment variables (including Render)
+# CONN_MAX_AGE=0 — Django opens a fresh connection per request.
+# This avoids "server closed the connection unexpectedly" 500 errors from
+# RDS dropping idle TCP connections between requests.
+_DB_OPTIONS = {
+    'gssencmode': 'disable',
+    'sslmode': 'disable',
+    'connect_timeout': 100,
+    'keepalives': 1,
+    'keepalives_idle': 30,
+    'keepalives_interval': 10,
+    'keepalives_count': 5,
+}
+
 if os.environ.get('DATABASE_URL'):
     DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
+        'default': dj_database_url.config(conn_max_age=0, ssl_require=False)
     }
+    DATABASES['default'].setdefault('OPTIONS', {})
+    DATABASES['default']['OPTIONS'].update(_DB_OPTIONS)
 
-    
 elif 'RDS_HOSTNAME' in os.environ:
     DATABASES = {
         'default': {
@@ -156,21 +171,29 @@ elif 'RDS_HOSTNAME' in os.environ:
             'NAME': os.environ['RDS_DB_NAME'],
             'USER': os.environ['RDS_USERNAME'],
             'PASSWORD': os.environ['RDS_PASSWORD'],
-            'HOST': os.environ['RDS_HOSTNAME'],
+            'HOST': os.environ['RDS_HOSTNAME'].strip(),
             'PORT': os.environ['RDS_PORT'],
+            'CONN_MAX_AGE': 0,
+            'OPTIONS': _DB_OPTIONS,
         }
     }
 else:
+    db_engine = os.getenv('DB_ENGINE', 'django.db.backends.sqlite3')
+    db_host = (os.getenv('DB_HOST') or '').strip()
     DATABASES = {
         'default': {
-            'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.sqlite3'),
+            'ENGINE': db_engine,
             'NAME': os.getenv('DB_NAME', os.path.join(BASE_DIR, 'db.sqlite3')),
             'USER': os.getenv('DB_USER'),
             'PASSWORD': os.getenv('DB_PASSWORD'),
-            'HOST': os.getenv('DB_HOST'),
+            'HOST': db_host,
             'PORT': os.getenv('DB_PORT'),
+            'CONN_MAX_AGE': 0,
         }
     }
+    if 'postgresql' in db_engine:
+        DATABASES['default']['OPTIONS'] = _DB_OPTIONS
+
 
 
 

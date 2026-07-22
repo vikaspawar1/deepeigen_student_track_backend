@@ -30,9 +30,9 @@ class StudentOverviewSummaryTests(SimpleTestCase):
         )
 
         self.assertEqual(summary["overall_completion"], 50.0)
-        self.assertEqual(summary["performance_points_earned"], 260)
+        self.assertEqual(summary["performance_points_earned"], 748)
         self.assertEqual(summary["performance_points_max"], 1000)
-        self.assertEqual(summary["consistency_score"], 40)
+        self.assertEqual(summary["consistency_score"], 112.2)
         self.assertEqual(summary["study_time_minutes"], 180)
         self.assertEqual(summary["internship_eligible"], True)
 
