@@ -115,8 +115,16 @@ def computePALC(enrollment):
             (days_since_enrollment / total_course_days) * lectures_total if total_course_days else lectures_total
         )
 
-    palc = (enrollment.completed_lectures / max(expected_lectures_by_now, 1)) * 100.0
-    return round(_clamp(palc, 0, 100), 2)
+    # 1. Raw Completion Ratio (80% Weight): Actual lectures completed / Total course lectures
+    raw_completion_pct = (enrollment.completed_lectures / lectures_total) * 100.0
+
+    # 2. Pace Score Ratio (20% Weight): Are lectures completed on/ahead of schedule for elapsed time?
+    pace_ratio = (enrollment.completed_lectures / max(expected_lectures_by_now, 1.0)) * 100.0
+    pace_score_pct = _clamp(pace_ratio, 0.0, 100.0)
+
+    # Blended PALC Score: 80% Actual Completion + 20% Pace Adherence
+    palc = 0.80 * raw_completion_pct + 0.20 * pace_score_pct
+    return round(_clamp(palc, 0.0, 100.0), 2)
 
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -598,6 +606,33 @@ def _legacy_breakdown_from_dels(dels_result: dict) -> dict:
     }
 
 
+def compute_streak_consistency_points(streak: int) -> float:
+    """
+    Calculates consistency points (Max 150 pts) based on 7-day milestone stages:
+    - 0 days streak: 0 pts (broken streak)
+    - 1-6 days streak: 2 pts per day (Day 1: 2, Day 2: 4 ... Day 6: 12)
+    - 7-13 days streak (Stage 1 - 7 Days): 20 pts base + 4 pts/day for days 8-13 (Day 7: 20 pts, Day 13: 44 pts)
+    - 14-20 days streak (Stage 2 - 14 Days): 50 pts base + 5 pts/day for days 15-20 (Day 14: 50 pts, Day 20: 80 pts)
+    - 21-27 days streak (Stage 3 - 21 Days): 85 pts base + 5 pts/day for days 22-27 (Day 21: 85 pts, Day 27: 115 pts)
+    - 28-34 days streak (Stage 4 - 28 Days): 120 pts base + 5 pts/day for days 29-34 (Day 28: 120 pts, Day 34: 145 pts)
+    - 35+ days streak (Stage 5 - 35 Days): 150 pts (Max points)
+    """
+    if streak <= 0:
+        return 0.0
+    elif streak < 7:
+        return round(float(streak * 2), 1)
+    elif streak < 14:
+        return round(20.0 + (streak - 7) * 4.0, 1)
+    elif streak < 21:
+        return round(50.0 + (streak - 14) * 5.0, 1)
+    elif streak < 28:
+        return round(85.0 + (streak - 21) * 5.0, 1)
+    elif streak < 35:
+        return round(120.0 + (streak - 28) * 5.0, 1)
+    else:
+        return 150.0
+
+
 def build_student_overview_summary(
     analytics,
     *,
@@ -637,9 +672,13 @@ def build_student_overview_summary(
         overall_completion = 0.0
 
     streak = int(getattr(analytics, "current_learning_streak", 0) or 0)
+    consistency_pts = compute_streak_consistency_points(streak)
 
-    if streak == 0:
-        breakdown["consistency"] = {"earned": 0.0, "max": 150, "percent": 0.0}
+    breakdown["consistency"] = {
+        "earned": consistency_pts,
+        "max": 150,
+        "percent": round((consistency_pts / 150.0) * 100.0, 1),
+    }
 
     # Overall score equals the exact sum of the 3 breakdown categories
     overall_score = round(
