@@ -641,15 +641,13 @@ def build_student_overview_summary(
     if streak == 0:
         breakdown["consistency"] = {"earned": 0.0, "max": 150, "percent": 0.0}
 
-    if dels_result is not None:
-        overall_score = round(dels_result["dels"], 0)
-    else:
-        overall_score = round(
-            breakdown["assignment_performance"]["earned"]
-            + breakdown["lecture_completion"]["earned"]
-            + breakdown["consistency"]["earned"],
-            0
-        )
+    # Overall score equals the exact sum of the 3 breakdown categories
+    overall_score = round(
+        breakdown["assignment_performance"]["earned"]
+        + breakdown["lecture_completion"]["earned"]
+        + breakdown["consistency"]["earned"],
+        0
+    )
 
     breakdown["overall"] = {
         "earned": overall_score,
