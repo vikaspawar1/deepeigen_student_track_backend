@@ -408,12 +408,45 @@ class DELSDetailAPIView(APIView):
 
         target_user = _resolve_target_user(request, user_id)
         dels_result = compute_dels_preview(target_user)
-        since = timezone.now().date() - timedelta(days=90)
-        trend = list(
+        today = timezone.now().date()
+        since = today - timedelta(days=90)
+        snaps = list(
             DELSSnapshot.objects.filter(user=target_user, date__gte=since)
             .order_by("date")
-            .values("date", "dels_value", "tier")
         )
+
+        snaps_by_date = {}
+        earliest_date = None
+        for snap in snaps:
+            d_str = snap.date.isoformat() if hasattr(snap.date, "isoformat") else str(snap.date)
+            snaps_by_date[d_str] = {"dels_value": snap.dels_value, "tier": snap.tier}
+            if earliest_date is None:
+                earliest_date = snap.date
+
+        # Set live preview score for today
+        snaps_by_date[today.isoformat()] = {"dels_value": dels_result["dels"], "tier": dels_result["tier"]}
+
+        if earliest_date:
+            start_date = min(earliest_date, today - timedelta(days=6))
+        else:
+            start_date = today - timedelta(days=6)
+
+        trend = []
+        current_date = start_date
+        last_val = 0.0
+        last_tier = "At Risk"
+
+        while current_date <= today:
+            d_str = current_date.isoformat()
+            if d_str in snaps_by_date:
+                last_val = snaps_by_date[d_str]["dels_value"]
+                last_tier = snaps_by_date[d_str]["tier"]
+            trend.append({
+                "date": d_str,
+                "dels_value": last_val,
+                "tier": last_tier,
+            })
+            current_date += timedelta(days=1)
 
         return Response({
             "dels": dels_result["dels"],

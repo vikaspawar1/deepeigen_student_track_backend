@@ -125,8 +125,10 @@ def computePALC(enrollment):
 def computeASR(enrollment, assignment_activities=None):
     due_so_far = _mandatory_activities_due_so_far(enrollment, assignment_activities)
     if not due_so_far:
-        return 100.0  # nothing mandatory due yet — don't penalize
+        return 0.0
     submitted = sum(1 for a in due_so_far if a.assignment_submission_time)
+    if submitted == 0:
+        return 0.0
     return round(_clamp((submitted / len(due_so_far)) * 100.0, 0, 100), 2)
 
 
@@ -136,7 +138,11 @@ def computeASR(enrollment, assignment_activities=None):
 def computeATS(enrollment, assignment_activities=None):
     due_so_far = _mandatory_activities_due_so_far(enrollment, assignment_activities)
     if not due_so_far:
-        return 100.0
+        return 0.0
+
+    submitted = sum(1 for a in due_so_far if a.assignment_submission_time)
+    if submitted == 0:
+        return 0.0
 
     scores = []
     for act in due_so_far:
@@ -635,22 +641,21 @@ def build_student_overview_summary(
     if streak == 0:
         breakdown["consistency"] = {"earned": 0.0, "max": 150, "percent": 0.0}
 
-    # Ensure overall score dynamically equals the sum of breakdown parts
-    overall_score = round(
-        breakdown["assignment_performance"]["earned"]
-        + breakdown["lecture_completion"]["earned"]
-        + breakdown["consistency"]["earned"],
-        0
-    )
+    if dels_result is not None:
+        overall_score = round(dels_result["dels"], 0)
+    else:
+        overall_score = round(
+            breakdown["assignment_performance"]["earned"]
+            + breakdown["lecture_completion"]["earned"]
+            + breakdown["consistency"]["earned"],
+            0
+        )
+
     breakdown["overall"] = {
         "earned": overall_score,
         "max": 1000,
         "percent": round(overall_score / 10.0, 1),
     }
-
-    if dels_result is not None:
-        dels_result["dels"] = overall_score
-        dels_result["tier"] = tier_for(overall_score)
 
     return {
         "overall_completion": overall_completion,
