@@ -319,7 +319,7 @@ class EnrolledUser(models.Model):
     enrolled = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=date_now)
     updated_at = models.DateTimeField(auto_now=True)
-    end_at    = models.DateTimeField(default=datetime.now, blank=True)
+    end_at    = models.DateTimeField(default=date_now, blank=True)
     full_access_flag = models.BooleanField(default=False)
     installment_id_2=models.CharField(blank=True, null=True,max_length=500)
     installment_id_3=models.CharField(blank=True, null=True,max_length=500)

@@ -269,7 +269,7 @@ class ChatbotMessageView(APIView):
             reply = f"Hello {user.first_name or user.username}! 👋 I'm your study assistant. Ask me about your courses, progress, payments, assignments, or study reminders."
             handled = True
         elif any(kw in message for kw in ["how are you", "how r you", "how are u", "how are things", "how is it going", "what's up", "whats up"]):
-            reply = "I'm doing great, thanks for asking! 😊 I'm here to help you stay on track with your courses, progress, assignments, payments, and study reminders."
+            reply = "I'm doing great, thanks for asking! I'm here to help you stay on track with your courses, progress, assignments, payments, and study reminders."
             handled = True
         elif any(kw in message for kw in ["thank you", "thanks", "thx", "appreciate it"]):
             reply = "You're welcome! If you have any questions about your courses, progress, assignments, or payments, just ask."
@@ -389,6 +389,24 @@ class ChatbotMessageView(APIView):
             elif any(kw in message for kw in ["settings", "profile", "password"]):
                 reply = "Account Settings\n\nYou can manage your account from the following pages:\n\n  •  Profile — Update your name, photo, bio\n  •  Password — Change your password\n  • Email Preferences — Notification settings\n\n Go to: Dashboard → Account → Settings"
 
+            elif any(kw in message for kw in ["pricing", "plan", "plans", "subscription", "price", "how much", "cost"]):
+                reply = ("DeepEigen Subscription Pricing Plans:\n\n"
+                         "1. Basic — Learn By Building\n"
+                         "   • Price: ₹830/year ($10/year)\n"
+                         "   • Category: CAT-II (Application-focused courses)\n"
+                         "   • Features: Access to application-focused courses, End-to-end projects, Programming assignments, Course completion certificate, Community support, Lifetime access to purchased courses\n"
+                         "   • Target Audience: Beginners, Software Engineers, Students wanting practical AI Skills\n\n"
+                         "2. Standard — Build Strong AI Foundations\n"
+                         "   • Price: ₹2999/year ($50/year)\n"
+                         "   • Category: CAT-IA & CAT-II\n"
+                         "   • Features: Theoretical modules, Math intuition behind algorithms, Architecture deep dives, Additional assignments, Priority doubt support, Mini research projects, Industry case studies, Early access to new courses\n"
+                         "   • Target Audience: AI/ML Engineers, Professional Upskilling\n\n"
+                         "3. Premium — Research-Level AI Education\n"
+                         "   • Price: ₹3735/year ($50/year)\n"
+                         "   • Category: CAT-IA + CAT-IB + CAT-II\n"
+                         "   • Features: Complete theoretical curriculum, Mathematical derivations, Research paper reading sessions & paper implementation, State-of-the-art architecture analysis, Advanced capstone projects, Research mentorship, Certificate of Excellence, Priority support\n"
+                         "   • Target Audience: Researchers, M.Tech/PhD students, AI Scientists, Advanced ML Engineers")
+
             else:
                 faqs = ChatbotFAQ.objects.all()
                 for faq in faqs:
@@ -436,8 +454,6 @@ class ChatbotPublicHomeView(APIView):
                 "What courses do you offer?",
                 "Subscription Plans",
                 "How do I enroll?",
-                "Do you offer free trials?",
-                "Which plan is best for beginners?",
                 "Do you offer installments?",
                 "Refund Policy",
                 "Do I get a certificate?",
@@ -461,27 +477,67 @@ class ChatbotPublicMessageView(APIView):
 
     PLANS = {
         "basic": {
-            "name": "Basic — Learn By Building",
-            "price": "₹4999/year ($79/year)",
+            "title": "Basic",
+            "subtitle": "Learn By Building",
+            "price": "₹830 / year  ($10 / year)",
             "category": "CAT-II",
-            "for": "Beginners, Software Engineers, Students wanting practical AI skills",
-            "features": "Application-focused courses, end-to-end projects, assignments, certificate, community support, lifetime access"
+            "features": [
+                "Access to application-focused courses",
+                "End-to-end projects",
+                "Programming assignments",
+                "Course completion certificate",
+                "Community support",
+                "Lifetime access to purchased courses"
+            ],
+            "who_is_this_for": "Beginners, Software Engineers, Students wanting practical AI Skills"
         },
         "standard": {
-            "name": "Standard — Build Strong AI Foundations",
-            "price": "₹11999/year ($125.83/year)",
+            "title": "Standard",
+            "subtitle": "Build Strong AI Foundations",
+            "price": "₹2999 / year  ($50 / year)",
             "category": "CAT-IA & CAT-II",
-            "for": "AI/ML Engineers, Professional Upskilling",
-            "features": "Theoretical modules, math intuition, architecture deep dives, priority doubt support, mini research projects, early access"
+            "features": [
+                "Theoretical modules",
+                "Mathematical intuition behind algorithms",
+                "Architecture deep dives",
+                "Additional assignments",
+                "Priority doubt support",
+                "Mini research projects",
+                "Industry case studies",
+                "Early access to new courses"
+            ],
+            "who_is_this_for": "AI/ML Engineers, Professional Upskilling"
         },
         "premium": {
-            "name": "Premium — Research-Level AI Education",
-            "price": "₹29999/year ($314.58/year)",
+            "title": "Premium",
+            "subtitle": "Research-Level AI Education",
+            "price": "₹3735 / year  ($50 / year)",
             "category": "CAT-IA + CAT-IB + CAT-II",
-            "for": "Researchers, M.Tech/PhD students, AI Scientists, Advanced ML Engineers",
-            "features": "Complete theory, research paper reading, paper implementation, advanced capstone projects, research mentorship, Certificate of Excellence"
+            "features": [
+                "Complete theoretical curriculum",
+                "Mathematical derivations",
+                "Research paper reading sessions",
+                "Paper implementation walkthroughs",
+                "State-of-the-art architecture analysis",
+                "Advanced capstone projects",
+                "Research mentorship",
+                "Certificate of Excellence",
+                "Priority support",
+                "Future premium course updates"
+            ],
+            "who_is_this_for": "Researchers, M.Tech/PhD students, AI Scientists, Advanced ML Engineers"
         },
     }
+
+    def format_plan_card(self, p):
+        features_str = "\n".join([f"  • {f}" for f in p["features"]])
+        return (
+            f"🔹 {p['title']} — {p['subtitle']}\n\n"
+            f" Price: {p['price']}\n"
+            f" Category: {p['category']}\n\n"
+            f" Features:\n{features_str}\n\n"
+            f" Who is this for:\n{p['who_is_this_for']}"
+        )
 
     def course_url(self, course):
         return f"{self.FRONTEND_BASE_URL}/courses/{course.id}/{course.url_link_name}"
@@ -634,43 +690,23 @@ class ChatbotPublicMessageView(APIView):
         elif any(kw in message for kw in ["instructor", "teacher", "who teaches", "faculty", "mentor"]):
             reply = "Our courses are taught by experienced instructors and supported by teaching assistants. Check a specific course page for instructor bios."
 
-
-
-
         # ---------- Subscription plans — general ----------
-        elif any(kw in message for kw in ["subscription", "plan", "plans", "membership", "packages"]):
-            reply = "We offer 3 subscription plans:\n\n"
-            for key, p in self.PLANS.items():
-                reply += f"• {p['name']} — {p['price']} ({p['category']})\n"
-            reply += "\nAsk 'which plan for beginners', 'for ML engineers', or 'for researchers' for a recommendation!"
-
-
+        elif any(kw in message for kw in ["subscription", "plan", "plans", "pricing", "price", "how much", "cost", "membership", "packages"]):
+            cards = [self.format_plan_card(p) for p in self.PLANS.values()]
+            reply = "DeepEigen Subscription Pricing Plans:\n\n" + "\n\n━━━━━━━━━━━━━━━━━━━━\n\n".join(cards)
 
         # ---------- Plan recommendation by profile ----------
-        elif any(kw in message for kw in ["beginner", "software engineer", "practical", "new to ai", "new to machine learning"]):
+        elif any(kw in message for kw in ["basic", "beginner", "software engineer", "practical", "new to ai", "new to machine learning"]):
             p = self.PLANS["basic"]
-            reply = f"{p['name']} ({p['price']}) fits you best — {p['for']}. Includes: {p['features']}."
+            reply = f"Here are the Basic Plan details:\n\n{self.format_plan_card(p)}"
 
-
-
-
-        elif any(kw in message for kw in ["upskill", "professional", "ml engineer", "ai engineer", "working professional"]):
+        elif any(kw in message for kw in ["standard", "upskill", "professional", "ml engineer", "ai engineer", "working professional"]):
             p = self.PLANS["standard"]
-            reply = f"{p['name']} ({p['price']}) fits you best — {p['for']}. Includes: {p['features']}."
+            reply = f"Here are the Standard Plan details:\n\n{self.format_plan_card(p)}"
 
-
-
-
-        elif any(kw in message for kw in ["researcher", "phd", "m.tech", "scientist", "advanced", "research level"]):
+        elif any(kw in message for kw in ["premium", "researcher", "phd", "m.tech", "scientist", "advanced", "research level"]):
             p = self.PLANS["premium"]
-            reply = f"{p['name']} ({p['price']}) fits you best — {p['for']}. Includes: {p['features']}."
-
-
-
-        elif any(kw in message for kw in ["difference between plans", "compare plans", "which plan is best", "plan comparison"]):
-            reply = "Plan comparison:\n\n"
-            for key, p in self.PLANS.items():
-                reply += f"• {p['name']} ({p['price']}) — {p['category']}\nBest for: {p['for']}\n\n"
+            reply = f"Here are the Premium Plan details:\n\n{self.format_plan_card(p)}"
 
 
 

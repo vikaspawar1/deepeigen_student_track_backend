@@ -40,6 +40,7 @@ urlpatterns = [
     path('invoice_manual/<str:userId>/<str:payment_id>/<int:course_id>/<str:orderNumber>', views.Invoice_manual,name="enroll_Invoice_manual" ),
     path('playlists/', views.playlists, name='playlists'),
     path('certificates/', views.certificates, name='certificates'),
+    path('verify-certificate/', views.verify_certificate, name='verify_certificate'),
 
     path('invoice/', views.Invoice_section, name="Invoice_section"),
 

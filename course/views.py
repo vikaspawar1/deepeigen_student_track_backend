@@ -428,7 +428,7 @@ def course_detail(request, id, course_url):
 
     @return JsonResponse Detailed course metadata, including instructors and TAs (200).
     """
-    now = datetime.now()
+    now = timezone.now()
     course = get_object_or_404(Course, pk=id, url_link_name=course_url)
 
     enrolled_user_flg = False
@@ -534,12 +534,12 @@ def Admin_course_Overview(admin, course):
             course_id=course.id,
             user=admin,
             enrolled=True,
-            end_at__gt=datetime.now()
+            end_at__gt=timezone.now()
         ).first()
 
         if not enrolled_user:
             from subscriptions.models import UserSubscription, PlanCategoryAccess
-            active_subs = UserSubscription.objects.filter(user=admin, is_active=True, end_date__gt=datetime.now())
+            active_subs = UserSubscription.objects.filter(user=admin, is_active=True, end_date__gt=timezone.now())
             for sub in active_subs:
                 # Restriction: Subscription only covers FEATURED courses
                 if course.is_featured and PlanCategoryAccess.objects.filter(plan_type=sub.plan.plan_type, category=course.category).exists():
@@ -584,12 +584,12 @@ def course_overview(request, id, course_url):
                 course_id=course.id,
                 user=request.user,
                 enrolled=True,
-                end_at__gt=datetime.now()
+                end_at__gt=timezone.now()
             ).first()
 
             if not enrolled_user:
                 from subscriptions.models import UserSubscription, PlanCategoryAccess
-                active_subs = UserSubscription.objects.filter(user=request.user, is_active=True, end_date__gt=datetime.now())
+                active_subs = UserSubscription.objects.filter(user=request.user, is_active=True, end_date__gt=timezone.now())
                 for sub in active_subs:
                     # Restriction: Subscription only covers FEATURED courses
                     if course.is_featured and PlanCategoryAccess.objects.filter(plan_type=sub.plan.plan_type, category=course.category).exists():
@@ -867,7 +867,7 @@ def optional_assignments(request, id, course_url):
 
     @return JsonResponse Serialized list of optional assignments and enrollment metadata (200).
     """
-    now = datetime.now()
+    now = timezone.now()
 
     course = get_object_or_404(
         Course,
@@ -975,7 +975,7 @@ def course_assignments(request, id, course_url):
     """
     course = get_object_or_404(Course, pk=id, url_link_name=course_url)
 
-    now = datetime.now()
+    now = timezone.now()
     enrolled_user = EnrolledUser.objects.filter(
         course_id=course.id,
         user=request.user,
@@ -1231,14 +1231,16 @@ def course_progress(request, id, course_url, section_url, assignment_id):
 
     submitted_file = request.FILES['submitted_file']
 
-    # Save assignment submission
-    assignment_evaluation = AssignmentEvaluation.objects.create(
-        course=course,
+    # Save or update assignment submission
+    assignment_evaluation, _ = AssignmentEvaluation.objects.update_or_create(
         user=request.user,
-        submitted_file=submitted_file,
         assignment=assignment,
-        section=section,
-        submit_flag=True
+        defaults={
+            'course': course,
+            'section': section,
+            'submitted_file': submitted_file,
+            'submit_flag': True
+        }
     )
 
     # Update overall progress (non-admin users)
@@ -1366,12 +1368,12 @@ def course_enrollment(request, id, course_url):
     enrollment_details = {
         "is_enrolled": True if enrolled_user else False,
         "end_at": enrolled_user.end_at.strftime('%Y-%m-%d') if enrolled_user and enrolled_user.end_at else None,
-        "is_expired": enrolled_user.end_at < datetime.now() if enrolled_user and enrolled_user.end_at else False,
+        "is_expired": enrolled_user.end_at < timezone.now() if enrolled_user and enrolled_user.end_at else False,
     }
 
     # Check if user can repurchase (only if expired)
     can_repurchase = True
-    if enrolled_user and enrolled_user.end_at and enrolled_user.end_at > datetime.now():
+    if enrolled_user and enrolled_user.end_at and enrolled_user.end_at > timezone.now():
         can_repurchase = False
 
     enrollment_details["can_repurchase"] = can_repurchase
@@ -1776,7 +1778,7 @@ def payment_done(request, id, course_url, order_id):
                 enrolled=True,
                 payment=payment,
                 order=order,
-                end_at=datetime.now() + relativedelta(months=course.duration),
+                end_at=timezone.now() + relativedelta(months=course.duration),
                 no_of_installments=1
             )
 
@@ -1911,7 +1913,7 @@ def payment_done(request, id, course_url, order_id):
                 enrolled=True,
                 payment=payment,
                 order=order,
-                end_at=datetime.now() + relativedelta(months=course.duration),
+                end_at=timezone.now() + relativedelta(months=course.duration),
                 no_of_installments=no_of_installments,
                 first_installments=True
             )
@@ -2259,7 +2261,7 @@ def payment_success(request):
                 payment=payment,
                 enrolled=True,
                 course_price=payu_data.get('amount'),
-                end_at=datetime.now() + relativedelta(months=course.duration)
+                end_at=timezone.now() + relativedelta(months=course.duration)
             )
 
             OverallProgress.objects.create(
@@ -2324,7 +2326,7 @@ def payment_success(request):
                 payment=payment,
                 enrolled=True,
                 course_price=0,
-                end_at=datetime.now() + relativedelta(months=course.duration)
+                end_at=timezone.now() + relativedelta(months=course.duration)
             )
 
             OverallProgress.objects.create(

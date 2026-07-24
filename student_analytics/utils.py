@@ -37,7 +37,7 @@ INACTIVITY_DECAY = 0.005
 COLD_START_DELS = 0.0
 
 
-CCS_WEIGHTS = {"PALC": 0.15, "ASR": 0.15, "ATS": 0.15, "AQS": 0.25, "ECI": 0.15, "MPA": 0.15}
+CCS_WEIGHTS = {"PALC": 0.15, "ASR": 0.15, "ATS": 0.10, "AQS": 0.35, "ECI": 0.10, "MPA": 0.15}
 
 TIER_BANDS = [
     (0, 299, "At Risk"),
